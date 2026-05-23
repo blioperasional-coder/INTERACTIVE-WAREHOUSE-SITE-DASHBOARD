@@ -1,0 +1,2388 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Denah Interaktif Gudang — Kanwil DKI Jakarta</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #07101e;
+  color: #e0e8f4;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+header {
+  padding: 8px 20px;
+  background: #0c1628;
+  border-bottom: 1px solid #1b2d48;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.logo { display:flex; align-items:center; gap:12px; }
+.logo-icon {
+  width:36px; height:36px;
+  background: linear-gradient(135deg,#1a4d8a,#0d2c56);
+  border-radius:8px; border:1px solid #2a4d7a;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.2rem; flex-shrink:0;
+}
+header h1 { font-size:.95rem; font-weight:700; color:#fff; }
+header p  { font-size:.68rem; color:#4e6f9a; margin-top:1px; }
+
+.header-right { display:flex; align-items:center; gap:12px; flex-shrink:0; }
+
+.hstats { display:flex; gap:8px; }
+.hstat {
+  text-align:center; padding:4px 12px;
+  background:#0a1828; border:1px solid #1b2d48; border-radius:8px;
+}
+.hstat .hv { font-size:.95rem; font-weight:700; color:#3b9eff; }
+.hstat .hl { font-size:.62rem; color:#4e6f9a; margin-top:1px; }
+
+/* Upload button */
+
+/* ── Main ── */
+.main { display:flex; flex:1; overflow:hidden; }
+
+/* ── Site Plan ── */
+.plan-wrap {
+  flex:1; padding:12px 16px 8px;
+  background:#07101e; overflow:auto;
+  display:flex; flex-direction:column;
+  position:relative;
+}
+.plan-label {
+  font-size:.67rem; color:#1e3d66;
+  letter-spacing:.1em; text-transform:uppercase; margin-bottom:6px;
+}
+svg#plan { flex:1; width:100%; min-width:600px; }
+
+/* SVG warehouse interaction */
+.wh { cursor:pointer; transition:all .15s ease; }
+.wh:hover .wh-bg { filter:brightness(1.3); }
+.wh.selected .wh-bg {
+  stroke:#3b9eff !important; stroke-width:2.5 !important;
+  filter:drop-shadow(0 0 7px rgba(59,158,255,.55));
+}
+.wh.selected .wh-name { fill:#3b9eff !important; }
+
+/* Legend */
+/* ── Legend Card ── */
+.legend {
+  position:absolute; bottom:12px; right:12px; left:auto; z-index:10;
+  background:rgba(8,15,30,.88);
+  border:1px solid rgba(59,158,255,.28);
+  border-radius:9px;
+  padding:7px 10px 6px;
+  box-shadow:0 0 16px rgba(59,158,255,.08), inset 0 1px 0 rgba(59,158,255,.06);
+  display:inline-flex; flex-direction:column; gap:0;
+  backdrop-filter:blur(6px);
+}
+.leg-head {
+  display:flex; align-items:center; gap:5px;
+  margin-bottom:5px; padding-bottom:5px;
+  border-bottom:1px solid #111e33;
+}
+.leg-head-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:#22c55e; box-shadow:0 0 5px #22c55e;
+  flex-shrink:0;
+}
+.leg-head-title {
+  font-size:.52rem; font-weight:800; color:#3b9eff;
+  letter-spacing:.11em; text-transform:uppercase;
+}
+.leg-row {
+  display:flex; align-items:center; gap:6px;
+  padding:3px 0;
+}
+.leg-row + .leg-row { border-top:1px solid rgba(17,30,51,.9); }
+.leg-dot  { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.leg-label { flex:1; font-size:.6rem; color:#6a8fb8; white-space:nowrap; }
+.leg-badge {
+  font-size:.5rem; font-weight:700; letter-spacing:.05em;
+  border-radius:20px; padding:1px 7px; border:1px solid;
+}
+.leg-badge.penuh    { color:#ef4444; border-color:rgba(239,68,68,.4);  background:rgba(239,68,68,.08); }
+.leg-badge.tersedia { color:#22c55e; border-color:rgba(34,197,94,.4);  background:rgba(34,197,94,.08); }
+.leg-badge.dipilih  { color:#3b9eff; border-color:rgba(59,158,255,.4); background:rgba(59,158,255,.08); }
+
+/* ── Detail Panel ── */
+.detail-panel {
+  width:365px; min-width:365px;
+  background:#0c1628; border-left:1px solid #1b2d48;
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.dp-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:11px 16px; border-bottom:1px solid #1b2d48; flex-shrink:0;
+}
+.dp-head h2 { font-size:.72rem; color:#4e6f9a; text-transform:uppercase; letter-spacing:.1em; }
+.dp-close {
+  background:none; border:none; color:#4e6f9a;
+  cursor:pointer; font-size:.95rem; padding:2px 7px;
+  border-radius:4px; transition:all .15s;
+}
+.dp-close:hover { color:#fff; background:#1b2d48; }
+
+.dp-body { flex:1; overflow-y:auto; padding:14px 16px; }
+.dp-body::-webkit-scrollbar { width:4px; }
+.dp-body::-webkit-scrollbar-track { background:#0a1828; }
+.dp-body::-webkit-scrollbar-thumb { background:#1b2d48; border-radius:4px; }
+
+/* Empty state */
+.empty {
+  height:100%; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  text-align:center; color:#2a4d7a; gap:12px; padding:40px;
+}
+.empty svg { opacity:.35; }
+.empty p { font-size:.78rem; line-height:1.7; }
+
+/* Warehouse detail */
+.wh-header { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+.wh-icon {
+  width:46px; height:46px;
+  background:linear-gradient(135deg,#1a4d8a,#0d2c56);
+  border-radius:10px; border:1px solid #2a4d7a;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.35rem; flex-shrink:0;
+}
+.wh-title h3 { font-size:1.2rem; font-weight:700; color:#3b9eff; }
+.wh-title p  { font-size:.7rem; color:#4e6f9a; margin-top:2px; }
+
+.gauge-metrics { display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+.gauge-wrap { flex-shrink:0; }
+
+.metrics { display:grid; grid-template-columns:1fr 1fr; gap:6px; flex:1; }
+.metric-card {
+  background:#07101e; border:1px solid #1b2d48; border-radius:7px; padding:9px;
+}
+.metric-card .mv { font-size:.95rem; font-weight:700; color:#fff; }
+.metric-card .ml { font-size:.62rem; color:#4e6f9a; margin-top:2px; }
+.metric-full { grid-column:1/-1; }
+
+.prog-wrap { margin-bottom:14px; }
+.prog-header {
+  display:flex; justify-content:space-between;
+  margin-bottom:5px; font-size:.68rem; color:#4e6f9a;
+}
+.prog-header span:last-child { color:#fff; font-weight:600; }
+.prog-track { height:7px; background:#1b2d48; border-radius:4px; overflow:hidden; }
+.prog-fill { height:100%; border-radius:4px; transition:width .4s cubic-bezier(.4,0,.2,1); }
+.prog-fill.penuh { background:linear-gradient(90deg,#c0392b,#e74c3c); }
+.prog-fill.tersedia { background:linear-gradient(90deg,#1e8449,#2ecc71); }
+
+.status-row { display:flex; gap:7px; margin-top:14px; }
+.status-chip {
+  flex:1; display:flex; align-items:center; justify-content:center;
+  gap:6px; padding:7px 10px;
+  background:#07101e; border:1px solid #1b2d48;
+  border-radius:7px; font-size:.68rem;
+}
+.status-chip.penuh { border-color:rgba(231,76,60,.3); color:#e74c3c; }
+.status-chip.tersedia { border-color:rgba(46,204,113,.3); color:#2ecc71; }
+.status-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+
+.sec-title {
+  font-size:.67rem; color:#4e6f9a;
+  text-transform:uppercase; letter-spacing:.1em;
+  margin-bottom:9px; margin-top:14px;
+}
+
+.cust-list { display:flex; flex-direction:column; gap:5px; }
+.cust-item {
+  background:#07101e; border:1px solid #1b2d48; border-left:3px solid;
+  border-radius:0 7px 7px 0; padding:8px 11px;
+}
+.cust-top { display:flex; align-items:flex-start; justify-content:space-between; gap:7px; }
+.cust-name { font-size:.75rem; font-weight:500; flex:1; line-height:1.35; }
+.cust-space { font-size:.75rem; font-weight:700; white-space:nowrap; flex-shrink:0; }
+.cust-bar-track { height:3px; background:#1b2d48; border-radius:2px; margin-top:5px; }
+.cust-bar-fill  { height:100%; border-radius:2px; }
+.cust-jenis { font-size:.65rem; color:#4e6f9a; margin-top:3px; }
+
+/* ── Photo Carousel ── */
+.photo-area {
+  width:100%; height:170px;
+  background:#071628;
+  border-radius:10px; border:1px solid #1b2d48;
+  margin-bottom:14px; overflow:hidden; position:relative;
+  flex-shrink:0;
+}
+/* slides strip */
+.photo-slides {
+  display:flex; width:100%; height:100%;
+  transition:transform .45s cubic-bezier(.4,0,.2,1);
+  will-change:transform;
+}
+.photo-slide { min-width:100%; height:100%; overflow:hidden; }
+.photo-slide img {
+  width:100%; height:100%; object-fit:cover; object-position:center;
+  display:block; transition:transform .4s ease;
+}
+.photo-slide img:hover { transform:scale(1.05); }
+/* overlay gradient */
+.photo-overlay {
+  position:absolute; inset:0;
+  background:linear-gradient(180deg,rgba(7,16,30,.15) 0%,transparent 35%,rgba(7,16,30,.8) 100%);
+  pointer-events:none; z-index:2;
+}
+/* status badge */
+.photo-badge {
+  position:absolute; bottom:10px; right:10px; z-index:4;
+  background:rgba(7,14,28,.88);
+  border-radius:6px; padding:3px 10px;
+  font-size:.65rem; font-weight:700; letter-spacing:.05em;
+  backdrop-filter:blur(6px);
+}
+.photo-badge.penuh   { color:#ef4444; border:1px solid rgba(239,68,68,.5); }
+.photo-badge.tersedia{ color:#22c55e; border:1px solid rgba(34,197,94,.5); }
+/* name label */
+.photo-name {
+  position:absolute; bottom:10px; left:12px; z-index:4;
+  font-size:.7rem; color:rgba(255,255,255,.75);
+  text-shadow:0 1px 5px rgba(0,0,0,.9);
+}
+/* photo counter badge top-left */
+.photo-count {
+  position:absolute; top:9px; left:10px; z-index:4;
+  background:rgba(7,14,28,.8); border:1px solid rgba(59,158,255,.25);
+  border-radius:10px; padding:2px 9px;
+  font-size:.62rem; color:rgba(255,255,255,.7);
+  backdrop-filter:blur(4px);
+}
+/* prev / next buttons */
+.photo-nav {
+  position:absolute; top:50%; transform:translateY(-50%); z-index:5;
+  width:28px; height:28px; border-radius:50%;
+  background:rgba(7,14,28,.75); border:1px solid rgba(59,158,255,.3);
+  color:#fff; font-size:1.1rem; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all .2s; backdrop-filter:blur(6px);
+  padding:0;
+}
+.photo-nav:hover { background:rgba(59,158,255,.35); border-color:#3b9eff; }
+.photo-nav.prev { left:8px; }
+.photo-nav.next { right:8px; }
+.photo-nav.hidden { display:none; }
+/* dot indicators */
+.photo-dots {
+  position:absolute; bottom:30px; left:50%; transform:translateX(-50%); z-index:4;
+  display:flex; gap:5px; align-items:center;
+}
+.photo-dot {
+  height:5px; border-radius:3px; cursor:pointer;
+  background:rgba(255,255,255,.35); transition:all .25s ease;
+  min-width:5px;
+}
+.photo-dot.active { background:#fff; min-width:16px; }
+/* placeholder / loading */
+.photo-placeholder {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:10px; color:#1e3d66; z-index:3;
+}
+.photo-placeholder .pi  { font-size:2.2rem; opacity:.35; }
+.photo-placeholder span { font-size:.7rem; }
+/* spinner */
+@keyframes spin { to { transform:rotate(360deg); } }
+.spinner {
+  width:26px; height:26px; border-radius:50%;
+  border:2.5px solid #1b2d48; border-top-color:#3b9eff;
+  animation:spin .75s linear infinite;
+}
+
+/* ── Management Analysis Card ── */
+.analysis-card {
+  border-radius:8px; border:1px solid; padding:10px 12px;
+  margin-bottom:12px;
+}
+.analysis-header {
+  display:flex; align-items:center; gap:7px; margin-bottom:8px;
+}
+.analysis-dot {
+  width:7px; height:7px; border-radius:50%; flex-shrink:0;
+  box-shadow:0 0 6px currentColor;
+}
+.analysis-level { font-size:.75rem; font-weight:700; flex:1; }
+.analysis-pct   { font-size:.67rem; opacity:.65; }
+.analysis-tips  { margin:0; padding-left:15px; list-style:disc; }
+.analysis-tips li {
+  font-size:.695rem; color:#6a8fb8; line-height:1.55;
+  margin-bottom:4px;
+}
+.analysis-tips li:last-child { margin-bottom:0; }
+.analysis-tips li b { color:#a0c4e8; font-weight:600; }
+
+/* ── Resume Footer ── */
+footer {
+  background:#060e1c; border-top:2px solid #1b2d48;
+  padding:9px 20px 10px; display:flex; flex-direction:column;
+  gap:5px; flex-shrink:0;
+}
+.resume-label {
+  font-size:.6rem; font-weight:700; letter-spacing:.1em;
+  color:#2a4d7a; text-transform:uppercase;
+}
+.resume-bar {
+  display:flex; align-items:center; gap:0; flex-wrap:wrap;
+}
+.rstat {
+  display:flex; flex-direction:column; align-items:center;
+  padding:0 14px;
+}
+.rstat:first-child { padding-left:0; }
+.rval { font-size:.82rem; font-weight:700; color:#c9d8f0; line-height:1.2; }
+.rval-big { font-size:1.05rem; color:#3b9eff; }
+.rlbl { font-size:.57rem; color:#2a4d7a; margin-top:1px; white-space:nowrap; }
+.rsep { width:1px; height:26px; background:#1b2d48; flex-shrink:0; }
+.occ-pill {
+  display:inline-flex; align-items:center; gap:5px;
+  border-radius:20px; padding:2px 10px; font-size:.6rem;
+  font-weight:700; letter-spacing:.06em; border:1px solid;
+}
+.occ-dot { width:6px; height:6px; border-radius:50%; }
+/* ── Floor Plan Layout ── */
+.layout-wrap { margin-bottom:0; }
+.lt-cell { cursor:pointer; }
+.lt-cell rect { transition:stroke-width .12s, filter .12s; }
+.lt-cell:hover rect { stroke-width:1.6px !important; filter:brightness(1.35); }
+
+/* ── Floor Plan Legend ── */
+.lt-legend {
+  display:flex; flex-wrap:wrap; gap:5px 16px;
+  padding:10px 2px 2px; border-top:1px solid #1b2d48; margin-top:6px;
+}
+.lt-leg-item {
+  display:flex; align-items:center; gap:6px;
+  font-size:.68rem; color:#8aa8c8;
+  min-width:calc(50% - 8px); flex:1 0 calc(50% - 8px);
+}
+.lt-leg-swatch {
+  width:12px; height:12px; border-radius:3px;
+  border:1px solid; flex-shrink:0;
+}
+
+/* ── Denah Button ── */
+.denah-btn {
+  width:100%; padding:11px 14px; margin-top:14px;
+  background:#071628; border:1px solid #1b3050;
+  border-radius:9px; color:#3b9eff;
+  font-size:.77rem; font-weight:600; cursor:pointer;
+  letter-spacing:.04em; transition:all .2s;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.denah-btn:hover { background:#0d2040; border-color:#3b9eff; box-shadow:0 0 12px rgba(59,158,255,.15); }
+
+/* ── Layout Modal ── */
+.lm-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(4,9,20,.9); z-index:800;
+  align-items:center; justify-content:center;
+  backdrop-filter:blur(5px);
+}
+.lm-overlay.active { display:flex; }
+.lm-box {
+  background:#0c1628; border:1px solid #1b3050;
+  border-radius:14px; width:min(700px,95vw);
+  max-height:90vh; display:flex; flex-direction:column;
+  box-shadow:0 24px 80px rgba(0,0,0,.75);
+  animation:lmIn .25s cubic-bezier(.4,0,.2,1);
+}
+@keyframes lmIn {
+  from { opacity:0; transform:translateY(18px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+.lm-head {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding:15px 18px 13px; border-bottom:1px solid #1b2d48; flex-shrink:0;
+}
+.lm-title-block { display:flex; flex-direction:column; gap:3px; }
+.lm-title-row { display:flex; align-items:center; gap:7px; }
+.lm-chevron { color:#3b9eff; font-size:.9rem; }
+.lm-title { font-size:.82rem; font-weight:700; color:#c9d8f0; letter-spacing:.07em; }
+.lm-sub { font-size:.66rem; color:#3d5c80; padding-left:2px; }
+.lm-close {
+  width:30px; height:30px; border-radius:8px;
+  background:#0a1828; border:1px solid #1b2d48;
+  color:#4e6f9a; font-size:1rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .2s; flex-shrink:0; margin-left:12px;
+}
+.lm-close:hover { background:#1b2d48; color:#c9d8f0; border-color:#2a4d7a; }
+.lm-body { padding:16px 18px; overflow-y:auto; flex:1; }
+.lm-empty { text-align:center; padding:40px 20px; color:#2a4d7a; font-size:.78rem; line-height:1.7; }
+
+/* ── Contract Notification Cards ── */
+.kontrak-section { margin-bottom:12px; }
+.kontrak-card {
+  border-radius:8px; border:1px solid;
+  padding:9px 12px; margin-bottom:7px;
+}
+.kontrak-card:last-child { margin-bottom:0; }
+.kontrak-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:5px;
+}
+.kontrak-badge {
+  font-size:.58rem; font-weight:700; letter-spacing:.06em;
+  border-radius:20px; padding:2px 9px; border:1px solid;
+  white-space:nowrap;
+}
+.kontrak-sisa { font-size:.72rem; font-weight:700; }
+.kontrak-cust { font-size:.72rem; font-weight:600; color:#c9d8f0; margin-bottom:3px; }
+.kontrak-period { font-size:.63rem; color:#3d5c80; }
+.kontrak-empty { font-size:.7rem; color:#2a4d7a; text-align:center; padding:8px 0; }
+
+/* ── Resume Analysis Row ── */
+.resume-analysis {
+  border-top:1px solid #111e33; padding-top:7px; margin-top:3px;
+  display:flex; gap:0; align-items:flex-start;
+}
+.ra-item {
+  display:flex; align-items:flex-start; gap:8px;
+  flex:1; padding:0 14px;
+  border-right:1px solid #111e33;
+}
+.ra-item:first-child { padding-left:0; }
+.ra-item:last-child  { border-right:none; }
+.ra-num {
+  min-width:16px; height:16px; border-radius:50%;
+  background:#0f2040; border:1px solid #1b3050;
+  color:#3b9eff; font-size:.58rem; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; margin-top:1px;
+}
+.ra-text { font-size:.64rem; color:#3d5c80; line-height:1.55; }
+.ra-text b { color:#7aafd4; font-weight:600; }
+
+/* ── Toast ── */
+.toast {
+  position:fixed; bottom:52px; left:50%; transform:translateX(-50%);
+  background:#0d1f3a; border:1px solid #1b3050;
+  border-radius:10px; padding:11px 18px;
+  display:flex; align-items:center; gap:10px;
+  font-size:.8rem; z-index:1000;
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
+  animation:toastIn .25s ease;
+  pointer-events:none;
+}
+.toast.success { border-color:rgba(46,204,113,.5); }
+.toast.error   { border-color:rgba(231,76,60,.5); }
+.toast.info    { border-color:rgba(59,158,255,.5); }
+.toast.loading { border-color:rgba(251,191,36,.5); }
+@keyframes toastIn {
+  from { opacity:0; transform:translateX(-50%) translateY(8px); }
+  to   { opacity:1; transform:translateX(-50%) translateY(0); }
+}
+
+/* ── Drag-drop overlay ── */
+.drop-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(7,16,30,.88); z-index:900;
+  align-items:center; justify-content:center;
+  border:3px dashed #3b9eff;
+}
+.drop-overlay.active { display:flex; }
+.drop-content { text-align:center; color:#3b9eff; }
+.drop-content .di { font-size:3.5rem; margin-bottom:10px; }
+.drop-content p { font-size:1.05rem; font-weight:600; }
+.drop-content small { font-size:.78rem; color:#4e6f9a; margin-top:6px; display:block; }
+
+/* ── Splash / Landing Page ── */
+#splashPage {
+  position:fixed; inset:0; z-index:950;
+  background:#07101e;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:24px 20px;
+  transition:opacity .4s ease, transform .4s ease;
+}
+#splashPage.hiding {
+  opacity:0; transform:scale(.98);
+  pointer-events:none;
+}
+
+.sp-logo {
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+  margin-bottom:32px;
+}
+.sp-logo-icon {
+  width:64px; height:64px; border-radius:16px;
+  background:linear-gradient(135deg,#1a4d8a,#0d2c56);
+  border:1px solid #2a4d7a;
+  display:flex; align-items:center; justify-content:center;
+  font-size:2rem;
+  box-shadow:0 8px 32px rgba(59,158,255,.18);
+}
+.sp-logo h1 {
+  font-size:1.55rem; font-weight:800; color:#fff;
+  letter-spacing:.03em; text-align:center;
+}
+.sp-logo p { font-size:.8rem; color:#3d5c80; text-align:center; margin-top:-8px; }
+
+.sp-dropzone {
+  width:100%; max-width:560px;
+  border:2px dashed #1b3050;
+  border-radius:18px; background:#0c1628;
+  padding:44px 32px 36px;
+  display:flex; flex-direction:column; align-items:center;
+  cursor:pointer; transition:all .25s;
+  position:relative;
+}
+.sp-dropzone:hover, .sp-dropzone.dragover {
+  border-color:#3b9eff; background:#0d1e38;
+  box-shadow:0 0 40px rgba(59,158,255,.1);
+}
+.sp-dropzone.dragover { border-style:solid; }
+
+.sp-folder { font-size:3.8rem; margin-bottom:18px; line-height:1; }
+.sp-drop-title {
+  font-size:1.15rem; font-weight:700; color:#c9d8f0; margin-bottom:6px; text-align:center;
+}
+.sp-drop-sub { font-size:.78rem; color:#3d5c80; text-align:center; margin-bottom:4px; }
+.sp-drop-format {
+  font-size:.72rem; color:#2a4d7a; text-align:center; margin-bottom:24px;
+}
+.sp-drop-format b { color:#4e8abb; }
+
+.sp-btn {
+  display:inline-flex; align-items:center; gap:9px;
+  background:linear-gradient(135deg,#1a5ea8,#0e3d7a);
+  border:1px solid #2a6ab8; border-radius:12px;
+  color:#fff; font-size:.88rem; font-weight:700;
+  padding:12px 28px; cursor:pointer; letter-spacing:.03em;
+  transition:all .2s; box-shadow:0 4px 20px rgba(59,158,255,.2);
+}
+.sp-btn:hover {
+  background:linear-gradient(135deg,#2070c8,#1a4d8a);
+  box-shadow:0 6px 28px rgba(59,158,255,.35);
+  transform:translateY(-1px);
+}
+.sp-btn svg { flex-shrink:0; }
+
+.sp-loading {
+  display:none; flex-direction:column; align-items:center; gap:12px;
+  margin-top:20px;
+}
+.sp-loading.active { display:flex; }
+.sp-spinner {
+  width:36px; height:36px; border-radius:50%;
+  border:3px solid #1b2d48; border-top-color:#3b9eff;
+  animation:spin .75s linear infinite;
+}
+.sp-load-text { font-size:.78rem; color:#4e6f9a; }
+
+.sp-info {
+  width:100%; max-width:560px; margin-top:24px;
+}
+.sp-info-title {
+  text-align:center; font-size:.6rem; font-weight:700;
+  letter-spacing:.12em; color:#1e3d66; text-transform:uppercase;
+  margin-bottom:12px;
+}
+.sp-info-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:10px;
+}
+.sp-info-card {
+  background:#0c1628; border:1px solid #1b2d48;
+  border-radius:10px; padding:14px 16px;
+}
+.sp-info-card h4 {
+  font-size:.67rem; font-weight:700; color:#3b9eff;
+  letter-spacing:.08em; text-transform:uppercase; margin-bottom:9px;
+}
+.sp-info-card ul { list-style:none; padding:0; margin:0; }
+.sp-info-card li {
+  font-size:.7rem; color:#3d5c80; padding:2px 0;
+  display:flex; align-items:baseline; gap:6px;
+}
+.sp-info-card li::before { content:"·"; color:#1b3050; flex-shrink:0; }
+.sp-info-card li b { color:#4e6f9a; font-weight:500; }
+</style>
+</head>
+<body>
+
+<!-- ══ Splash / Landing Page ══ -->
+<div id="splashPage">
+  <div class="sp-logo">
+    <div class="sp-logo-icon">🏭</div>
+    <h1>Interactive Warehouse Site Dashboard</h1>
+    <p>Kanwil DKI Jakarta · Sistem Monitoring Pergudangan</p>
+  </div>
+
+  <div class="sp-dropzone" id="spDropzone" onclick="document.getElementById('spFileInput').click()">
+    <div class="sp-folder">📂</div>
+    <div class="sp-drop-title">Drag &amp; Drop File Excel di Sini</div>
+    <div class="sp-drop-sub">atau klik untuk memilih file</div>
+    <div class="sp-drop-format">Format: <b>.xlsx / .xls</b> &nbsp;·&nbsp; Sheet: <b>CONSOLE</b> + Sheet per Gudang</div>
+    <button class="sp-btn" onclick="event.stopPropagation();document.getElementById('spFileInput').click()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      Pilih File Excel
+    </button>
+    <div class="sp-loading" id="spLoading">
+      <div class="sp-spinner"></div>
+      <span class="sp-load-text">Memuat dan memproses data...</span>
+    </div>
+  </div>
+  <input type="file" id="spFileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFile(this.files[0])">
+
+  <div class="sp-info">
+    <div class="sp-info-title">Struktur Data yang Dibaca dari File Excel</div>
+    <div class="sp-info-grid">
+      <div class="sp-info-card">
+        <h4>Sheet CONSOLE</h4>
+        <ul>
+          <li><b>Kol A</b> — No / Kode Gudang</li>
+          <li><b>Kol B</b> — Nama Gudang</li>
+          <li><b>Kol C</b> — Tipe / Jenis</li>
+          <li><b>Kol D</b> — Kapasitas (m²)</li>
+          <li><b>Kol E</b> — Terpakai (m²)</li>
+          <li><b>Kol H</b> — Customer</li>
+          <li><b>Kol L–M</b> — Mulai / Selesai Kontrak</li>
+        </ul>
+      </div>
+      <div class="sp-info-card">
+        <h4>Sheet per Gudang</h4>
+        <ul>
+          <li><b>Baris AREA</b> — Batas zona layout</li>
+          <li><b>Baris PINTU</b> — Posisi pintu masuk</li>
+          <li><b>Kol A</b> — Nama Tenant</li>
+          <li><b>Kol C</b> — Space (m²)</li>
+          <li><b>Kol E</b> — Jenis Barang</li>
+          <li><b>Grid sel</b> — Denah tata letak rak</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;text-align:center;font-size:.62rem;color:#1e3d66;letter-spacing:.06em;">
+    Powered by <span style="color:#2a5a8a;font-weight:600;">Div. Operasional</span> &nbsp;©&nbsp; 2026
+  </div>
+</div>
+
+<!-- Drag-drop overlay -->
+<div class="drop-overlay" id="dropOverlay">
+  <div class="drop-content">
+    <div class="di">📂</div>
+    <p>Lepaskan file Excel di sini</p>
+    <small>Format: .xlsx atau .xls</small>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" style="display:none"></div>
+
+<!-- Layout Modal -->
+<div class="lm-overlay" id="layoutModal" onclick="if(event.target===this)closeLayoutModal()">
+  <div class="lm-box">
+    <div class="lm-head">
+      <div class="lm-title-block">
+        <div class="lm-title-row">
+          <span class="lm-chevron">▼</span>
+          <span class="lm-title" id="lmTitle">DENAH LAYOUT GUDANG</span>
+        </div>
+        <div class="lm-sub" id="lmSub"></div>
+      </div>
+      <button class="lm-close" onclick="closeLayoutModal()">✕</button>
+    </div>
+    <div class="lm-body" id="lmBody"></div>
+  </div>
+</div>
+
+<!-- ── Header ── -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏭</div>
+    <div>
+      <h1>INTERACTIVE WAREHOUSE SITE DASHBOARD — KANWIL DKI JAKARTA</h1>
+      <p>Klik gudang untuk detail informasi penggunaan ruang dan tenant aktif</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="hstats">
+      <div class="hstat">
+        <div class="hv" id="hTotal">20</div>
+        <div class="hl">Total Gudang</div>
+      </div>
+      <div class="hstat">
+        <div class="hv" id="hPenuh" style="color:#e74c3c">—</div>
+        <div class="hl">Space Penuh</div>
+      </div>
+      <div class="hstat">
+        <div class="hv" id="hTersedia" style="color:#22c55e">—</div>
+        <div class="hl">Tersedia</div>
+      </div>
+      <div class="hstat">
+        <div class="hv" id="hOcc">—%</div>
+        <div class="hl">Occupancy</div>
+      </div>
+    </div>
+    <img src="logo.png" alt="Logo" style="height:44px;width:auto;object-fit:contain;opacity:.92;border-radius:6px;">
+    <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFile(this.files[0])">
+  </div>
+</header>
+
+<!-- ── Main ── -->
+<div class="main">
+
+  <!-- Site Plan -->
+  <div class="plan-wrap">
+    <div class="plan-label">▸ Peta Lokasi Gudang · Kanwil Jakarta · Klik gudang untuk detail</div>
+
+    <svg id="plan" viewBox="0 0 795 505" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+          <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#0e1e36" stroke-width="0.5"/>
+        </pattern>
+      </defs>
+
+      <!-- Background -->
+      <rect width="795" height="505" fill="url(#grid)"/>
+
+      <!-- Road layout sesuai sheet Denah: rows 2-51, cols 2-34 -->
+      <!-- Vertical corridors (jalan antar kolom, full-height) -->
+      <rect x="99"  y="5" width="71"  height="495" rx="2" fill="#091525"/>
+      <rect x="406" y="5" width="71"  height="495" rx="2" fill="#091525"/>
+      <!-- Far-right service area (cols 32–34) -->
+      <rect x="713" y="5" width="77"  height="495" rx="2" fill="#0a1520"/>
+      <!-- Cold Storage (static, rows 15-23 cols 2-3) — disesuaikan dengan lebar K/J -->
+      <rect x="10" y="135" width="80" height="90" rx="3" fill="#111d2c" stroke="#1b3050" stroke-width="1"/>
+      <text x="50" y="176" font-size="7.5" fill="#2c4a6a" text-anchor="middle" font-family="Arial" font-weight="700">COLD</text>
+      <text x="50" y="188" font-size="7.5" fill="#2c4a6a" text-anchor="middle" font-family="Arial" font-weight="700">STORAGE</text>
+      <!-- Center column horizontal roads (cols 9–18, x=170..406) -->
+      <!-- rows 11-15 → y=95-145 (antara M dan L) -->
+      <rect x="170" y="95"  width="236" height="50" fill="#091525"/>
+      <!-- rows 24-28 → y=225-275 (antara L dan I) -->
+      <rect x="170" y="225" width="236" height="50" fill="#091525"/>
+      <!-- rows 37-41 → y=355-405 (antara I dan H) -->
+      <rect x="170" y="355" width="236" height="50" fill="#091525"/>
+      <!-- Right column horizontal roads (cols 22–31, x=477..713) -->
+      <!-- rows 18-22 → y=165-215 (antara C dan D) -->
+      <rect x="477" y="165" width="236" height="50" fill="#091525"/>
+      <!-- rows 34-38 → y=325-375 (antara E dan F) -->
+      <rect x="477" y="325" width="236" height="50" fill="#091525"/>
+      <!-- Dashed centerlines — vertical corridors -->
+      <line x1="134" y1="5"  x2="134" y2="495" stroke="#0d2440" stroke-width="1" stroke-dasharray="8,6"/>
+      <line x1="441" y1="5"  x2="441" y2="495" stroke="#0d2440" stroke-width="1" stroke-dasharray="8,6"/>
+      <line x1="751" y1="5"  x2="751" y2="495" stroke="#0d2440" stroke-width="1" stroke-dasharray="5,4"/>
+      <!-- Dashed centerlines — center column roads -->
+      <line x1="170" y1="120" x2="406" y2="120" stroke="#0d2440" stroke-width="1" stroke-dasharray="8,6"/>
+      <line x1="170" y1="250" x2="406" y2="250" stroke="#0d2440" stroke-width="1" stroke-dasharray="8,6"/>
+      <line x1="170" y1="380" x2="406" y2="380" stroke="#0d2440" stroke-width="1" stroke-dasharray="8,6"/>
+      <!-- Dashed centerlines — right column roads -->
+      <line x1="477" y1="190" x2="713" y2="190" stroke="#0d2440" stroke-width="1" stroke-dasharray="8,6"/>
+      <line x1="477" y1="350" x2="713" y2="350" stroke="#0d2440" stroke-width="1" stroke-dasharray="8,6"/>
+
+      <!-- Dynamic warehouse groups (filled by JS) -->
+      <g id="svgWarehouses"></g>
+
+      <!-- Dynamic stats box -->
+      <g id="svgStats"></g>
+
+      <!-- Compass (static) -->
+      <g transform="translate(762,22)">
+        <circle r="14" fill="#0a1628" stroke="#1b3050" stroke-width="1"/>
+        <polygon points="0,-10 -4,4 0,2 4,4" fill="#3b9eff"/>
+        <polygon points="0,10 -4,-4 0,-2 4,-4" fill="#1b3050"/>
+        <text y="18" font-size="7" fill="#3b9eff" text-anchor="middle" font-family="Arial" font-weight="700">N</text>
+      </g>
+
+      <!-- Scale bar (static) -->
+      <g transform="translate(345,468)">
+        <rect x="0" y="0" width="60" height="5" fill="none" stroke="#1b3050" stroke-width="1"/>
+        <rect x="0" y="0" width="30" height="5" fill="#2a4d7a" opacity="0.6"/>
+        <text x="30" y="16" font-size="7" fill="#2a4d7a" text-anchor="middle" font-family="Arial">≈ 50 m</text>
+      </g>
+    </svg>
+
+    <div class="legend">
+      <div class="leg-head">
+        <span class="leg-head-dot"></span>
+        <span class="leg-head-title">Status Area Gudang</span>
+      </div>
+      <div class="leg-row">
+        <span class="leg-dot" style="background:#dc2626;box-shadow:0 0 6px #dc2626"></span>
+        <span class="leg-label">Space Penuh</span>
+        <span class="leg-badge penuh">Penuh</span>
+      </div>
+      <div class="leg-row">
+        <span class="leg-dot" style="background:#22c55e;box-shadow:0 0 6px #22c55e"></span>
+        <span class="leg-label">Space Tersedia</span>
+        <span class="leg-badge tersedia">Tersedia</span>
+      </div>
+      <div class="leg-row">
+        <span class="leg-dot" style="background:#3b9eff;box-shadow:0 0 6px #3b9eff"></span>
+        <span class="leg-label">Gudang Dipilih</span>
+        <span class="leg-badge dipilih">Aktif</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Panel -->
+  <div class="detail-panel">
+    <div class="dp-head">
+      <h2>Detail Gudang</h2>
+      <button class="dp-close" id="dpClose" onclick="closePanel()" style="display:none">✕</button>
+    </div>
+    <div id="dpEmpty" class="dp-body">
+      <div class="empty">
+        <svg width="60" height="60" viewBox="0 0 64 64" fill="none">
+          <rect x="8" y="20" width="48" height="36" rx="3" stroke="#2a4d7a" stroke-width="2"/>
+          <path d="M8 28h48" stroke="#2a4d7a" stroke-width="2"/>
+          <rect x="24" y="38" width="16" height="18" rx="1" stroke="#2a4d7a" stroke-width="2"/>
+          <path d="M16 8l16 12 16-12" stroke="#2a4d7a" stroke-width="2"/>
+        </svg>
+        <p>Pilih gudang pada denah untuk melihat detail penggunaan ruang dan informasi tenant</p>
+      </div>
+    </div>
+    <div id="dpDetail" class="dp-body" style="display:none"></div>
+  </div>
+</div>
+
+<!-- Resume Footer -->
+<footer>
+  <div class="resume-label">Resume Kondisi Area Pergudangan · Kanwil DKI Jakarta</div>
+  <div class="resume-bar">
+    <div class="rstat">
+      <div class="rval rval-big" id="fKapasitas">—</div>
+      <div class="rlbl">Kapasitas Total (m²)</div>
+    </div>
+    <div class="rsep"></div>
+    <div class="rstat">
+      <div class="rval" style="color:#ef4444" id="fTerpakai">—</div>
+      <div class="rlbl">Terpakai (m²)</div>
+    </div>
+    <div class="rsep"></div>
+    <div class="rstat">
+      <div class="rval" style="color:#22c55e" id="fSisa">—</div>
+      <div class="rlbl">Sisa Tersedia (m²)</div>
+    </div>
+    <div class="rsep"></div>
+    <div class="rstat">
+      <div class="rval" id="fOcc">—</div>
+      <div class="rlbl">Occupancy Rate</div>
+    </div>
+    <div class="rsep"></div>
+    <div class="rstat">
+      <div class="rval" style="color:#3b9eff" id="fTotal">—</div>
+      <div class="rlbl">Total Gudang</div>
+    </div>
+    <div class="rsep"></div>
+    <div class="rstat">
+      <div class="rval" style="color:#ef4444" id="fPenuh">—</div>
+      <div class="rlbl">Space Penuh</div>
+    </div>
+    <div class="rsep"></div>
+    <div class="rstat">
+      <div class="rval" style="color:#22c55e" id="fTersedia">—</div>
+      <div class="rlbl">Space Tersedia</div>
+    </div>
+    <div class="rsep"></div>
+    <div class="rstat" style="padding-left:18px">
+      <div id="fOccPill" class="occ-pill">
+        <span class="occ-dot" id="fOccDot"></span>
+        <span id="fOccLabel">—</span>
+      </div>
+      <div class="rlbl" style="margin-top:4px">Status Keseluruhan</div>
+    </div>
+  </div>
+  <div class="resume-analysis" id="resumeAnalysis"></div>
+</footer>
+
+<!-- SheetJS (client-side Excel parser) -->
+<script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+//  LAYOUT — fixed positions for each warehouse in the SVG
+// ═══════════════════════════════════════════════════════════════════
+// ── Layout berdasarkan sheet DENAH file datagudangDKI.xlsx ──────────
+// Skala: COL_W=23.6px/kolom, ROW_H=10px/baris, origin=(col2,row2)
+// Kolom utama (cols 9-18): x=170  │  Kolom kanan (cols 22-31): x=477
+// Kolom kiri  (cols 4-5):  x=52   │  Jarak vertikal antar blok = 50px (5 baris)
+const LAYOUT = [
+  // ── Kolom tengah/utama (cols 9–18) ───────────────────────────────────
+  // sections:[0.5] = garis pembagi M2/M1 di tengah bangunan
+  {id:'M',    x:170, y:15,  w:236, h:80,  sections:[0.5]},  // M2(baris 3-6) + M1(baris 7-10)
+  {id:'L-2',  x:170, y:145, w:236, h:40},                   // baris 16-19
+  {id:'L-1',  x:170, y:185, w:236, h:40},                   // baris 20-23
+  {id:'I-2',  x:170, y:275, w:236, h:40},                   // baris 29-32
+  {id:'I-1',  x:170, y:315, w:236, h:40},                   // baris 33-36
+  {id:'H',    x:170, y:405, w:236, h:80,  sections:[0.5]},  // H2(baris 42-45) + H1(baris 46-49)
+
+  // ── Kolom kanan (cols 22–31) ──────────────────────────────────────────
+  {id:'B',    x:477, y:55,  w:236, h:40},                   // baris 7-10
+  {id:'MP-J', x:477, y:105, w:236, h:20,  small:true},      // baris 12 (MP-B di Denah)
+  {id:'C',    x:477, y:125, w:236, h:40},                   // baris 14-17
+  {id:'D',    x:477, y:215, w:236, h:40},                   // baris 23-26
+  {id:'MP-D', x:477, y:265, w:236, h:20,  small:true},      // baris 28
+  {id:'E',    x:477, y:285, w:236, h:40},                   // baris 30-33
+  {id:'F',    x:477, y:375, w:236, h:40},                   // baris 39-42
+  {id:'MP-G', x:477, y:425, w:236, h:20,  small:true},      // baris 44
+  {id:'G',    x:477, y:445, w:236, h:40},                   // baris 46-49
+
+  // ── Kolom kiri (cols 4–5) ─────────────────────────────────────────────
+  {id:'K',    x:10,  y:275, w:80,  h:80,  sections:[0.5]},  // K2(baris 29-32) + K1(baris 33-36)
+  {id:'MP-K', x:10,  y:375, w:80,  h:20,  small:true},      // baris 39-40
+  {id:'J-2',  x:10,  y:405, w:80,  h:40},                   // baris 42-45
+  {id:'J-1',  x:10,  y:445, w:80,  h:40},                   // baris 46-49
+];
+
+// Dynamic map layout (set from Excel MAP sheet; falls back to LAYOUT above)
+let currentMapLayout = null;
+
+// ═══════════════════════════════════════════════════════════════════
+//  INITIAL WAREHOUSE DATA (hardcoded default)
+// ═══════════════════════════════════════════════════════════════════
+let WH = {
+  'B':   {name:'Gudang B',   type:'Gudang Indoor', space:3000, terpakai:3000, status:'SPACE PENUH',
+          customers:[{n:'PT. JOHNSON AND JOHNSON INDONESIA TWO',s:900},{n:'RMC',s:2100}]},
+  'C':   {name:'Gudang C',   type:'Gudang Indoor', space:3000, terpakai:3000, status:'SPACE PENUH',
+          customers:[{n:'PT. CLASSIC FINE FOOD',s:2250},{n:'PT. LUXCHEM INDONESIA',s:750}]},
+  'D':   {name:'Gudang D',   type:'Gudang Indoor', space:3000, terpakai:3010, status:'SPACE PENUH',
+          customers:[{n:'PT. DHANUSH',s:450},{n:'PT. PRIMACOMM',s:130},{n:'PT. HITE JINRO',s:100},
+                     {n:'PT. LANGIT BIRU',s:100},{n:'PT. CIBES',s:1080},{n:'PERTAMINA PETROCHEMICAL',s:800},
+                     {n:'PT. ARTHA MEGA INFRA',s:100},{n:'KSU/POMAL',s:125},{n:'PT. PRIMA PUTRA MAS',s:100},{n:'DIVAS VINTAGE',s:25}]},
+  'E':   {name:'Gudang E',   type:'Gudang Indoor', space:3000, terpakai:2920, status:'SPACE TERSEDIA',
+          customers:[{n:'PT. VALSPAR INDONESIA',s:800},{n:'PT. SEGORO INTERNATIONAL',s:835},
+                     {n:'PT. TOTAL PETROKEM',s:200},{n:'PT. TIRTA MAS KIMIA',s:160},{n:'PT. BEST ENERGY',s:200},
+                     {n:'PT. INTER KREATIV LIFT INDONESIA',s:150},{n:'PT. TECSOM FLOORING INDONESIA',s:150},
+                     {n:'PT. MEGA MART',s:25},{n:'PT. GUNUNG PADU PRIMAKASA',s:150},
+                     {n:'PT. PYROTEK INDONESIA',s:150},{n:'PT. ABADI KIMIA INTERNUSA',s:100}]},
+  'F':   {name:'Gudang F',   type:'Gudang Indoor', space:3000, terpakai:3000, status:'SPACE PENUH',
+          customers:[{n:'PT. LUXASIA INDONESIA',s:3000}]},
+  'G':   {name:'Gudang G',   type:'Gudang Indoor', space:3000, terpakai:3000, status:'SPACE PENUH',
+          customers:[{n:'PT. PERTAMINA PETROCHEMICAL TRADING',s:1400},{n:'PT. ELEKTA MEDICAL SOLUTIONS',s:100},
+                     {n:'PT. MITRA INTEGRASI INFORMATIKA',s:750},{n:'RECORD MANAGEMENT SERVICE',s:750}]},
+  'H':   {name:'Gudang H',   type:'Gudang Indoor', space:3000, terpakai:3000, status:'SPACE PENUH',
+          customers:[{n:'PT. ASDP',s:1500},{n:'PT. GLOBAL POWER',s:150},{n:'PT. NUSA RAYA ENERGI',s:100},
+                     {n:'PT. TRI BANGUN HUSADA',s:100},{n:'PT. NEOSYS',s:100},{n:'PT. EMVI',s:400},
+                     {n:'PT. NUSA ANTERO RAYA',s:200},{n:'PT. PERTAMINA',s:450}]},
+  'I-1': {name:'Gudang I-1', type:'Gudang Indoor', space:3000, terpakai:3000, status:'SPACE PENUH',
+          customers:[{n:'PT. PERKEBUNAN NUSANTARA',s:2900,j:'Teh Kemasan'},{n:'PT. TJAN KEE DJANG',s:100,j:'Elektronik'}]},
+  'I-2': {name:'Gudang I-2', type:'Gudang Indoor', space:3000, terpakai:3000, status:'SPACE PENUH',
+          customers:[{n:'PT. GLOBAL POWER',s:150,j:'Baterai'},{n:'PT. KOMDIGI',s:500,j:'Aset Kantor'},
+                     {n:'PT. ASDP',s:100,j:'Aksesori Mesin Kapal'},{n:'PT. PERTAMINA PETROCHEMICAL TRADING',s:1300,j:'Biji Plastik'},
+                     {n:'EX COVID 19',s:50,j:'Peralatan Medis'},{n:'Barang Sitaan Polisi',s:100,j:'Hand Sanitizer'},
+                     {n:'WARUNG PANGAN (PPI)',s:200,j:'Peralatan Bekas'},{n:'PT. PERKEBUNAN NUSANTARA',s:600,j:'Teh Kemasan'}]},
+  'J-1': {name:'Gudang J-1', type:'Gudang Indoor', space:1500, terpakai:1460, status:'SPACE TERSEDIA',
+          customers:[{n:'PT. SARINAH',s:400},{n:'PT. METRO POLITAN MART',s:260},{n:'PT. DINI RAYA',s:100},
+                     {n:'PT. AROMA PRIMA',s:100},{n:'PT. GELPI',s:90},{n:'PT. GUNUNG PADU',s:50},
+                     {n:'PT. GLOBAL MRS',s:50},{n:'PT. KIANG DENTAL',s:50},{n:'PT. MARTON',s:360}]},
+  'J-2': {name:'Gudang J-2', type:'Gudang Indoor', space:1500, terpakai:1320, status:'SPACE TERSEDIA',
+          customers:[{n:'PT. FRESH FACTORY (SEGAR)',s:100},{n:'PT. MULIA INSPIRA LOGISTIK',s:150},{n:'PT. HOSHIZAKI INDONESIA',s:1070}]},
+  'K':   {name:'Gudang K',   type:'Gudang Indoor', space:3000, terpakai:2950, status:'SPACE TERSEDIA',
+          customers:[{n:'PPI',s:2950}]},
+  'L-1': {name:'Gudang L-1', type:'Gudang Indoor', space:3000, terpakai:2900, status:'SPACE TERSEDIA',
+          customers:[{n:'PT. CEMERLANG',s:300},{n:'CV. RESTU BUMI',s:100},{n:'RUBEN KRISTANTO',s:100},
+                     {n:'PT. BANGUN BERKAT',s:200},{n:'PT. LUXASIA',s:200},{n:'PT. SAMUDERA PERMATA',s:150},
+                     {n:'PT. PERKEBUNAN NUSANTARA',s:700},{n:'PT. PERTAMINA',s:800},{n:'PT. PRIMACOM',s:350}]},
+  'L-2': {name:'Gudang L-2', type:'Gudang Indoor', space:3000, terpakai:3000, status:'SPACE PENUH',
+          customers:[{n:'PT. APL',s:3000}]},
+  'M':   {name:'Gudang M',   type:'Gudang Indoor', space:6000, terpakai:6000, status:'SPACE PENUH',
+          customers:[{n:'PT. ANUGERAH PHARMINDO LESTARI',s:6000}]},
+  'MP-D':{name:'MP-D', type:'Mini Platform', space:1160, terpakai:1158, status:'SPACE TERSEDIA',
+          customers:[{n:'PT. ANUGERAH PHARMINDO LESTARI',s:1158}]},
+  'MP-G':{name:'MP-G', type:'Mini Platform', space:1160, terpakai:1158, status:'SPACE TERSEDIA',
+          customers:[{n:'PT. ANUGERAH PHARMINDO LESTARI',s:1158}]},
+  'MP-J':{name:'MP-J', type:'Mini Platform', space:1160, terpakai:1158, status:'SPACE TERSEDIA',
+          customers:[{n:'PT. ANUGERAH PHARMINDO LESTARI',s:1158}]},
+  'MP-K':{name:'MP-K', type:'Mini Platform', space:1160, terpakai:1158, status:'SPACE TERSEDIA',
+          customers:[{n:'PT. ANUGERAH PHARMINDO LESTARI',s:1158}]},
+  'OS':  {name:'Open Storage', type:'Area Terbuka', space:16972, terpakai:0, status:'SPACE TERSEDIA',
+          customers:[]},
+};
+
+// Default contract data from CONSOLE sheet DAFTAR KONTRAK
+const DEFAULT_CONTRACTS = {
+  'B':   [{customer:'PT. GELPI KURNIA LESTARI',    mulai:new Date(2025,10,1),  selesai:new Date(2026,9,31)}],
+  'C':   [{customer:'PT GLOBAL MRS INDONESIA',      mulai:new Date(2026,0,4),   selesai:new Date(2027,0,3)}],
+  'D':   [{customer:'PT. GELPI KURNIA LESTARI',    mulai:new Date(2025,10,1),  selesai:new Date(2026,9,31)}],
+  'E':   [{customer:'PT. DINI RAYA UTAMA',          mulai:new Date(2026,3,1),   selesai:new Date(2026,5,30)}],
+  'F':   [{customer:'PT. GUNUNG PADU PRIMAKASA',    mulai:new Date(2026,1,14),  selesai:new Date(2027,1,13)}],
+  'G':   [{customer:'PT. Sarinah',                  mulai:new Date(2025,4,11),  selesai:new Date(2026,11,31)}],
+  'H':   [{customer:'PT. AROMA PRIMA INDONESIA',    mulai:new Date(2025,6,1),   selesai:new Date(2026,5,30)}],
+  'I-1': [{customer:'PT. KIANG DENTAL',             mulai:new Date(2026,3,1),   selesai:new Date(2026,5,30)}],
+};
+Object.keys(WH).forEach(id => {
+  WH[id].contracts = DEFAULT_CONTRACTS[id] || [];
+});
+
+// ═══════════════════════════════════════════════════════════════════
+//  SVG RENDERING
+// ═══════════════════════════════════════════════════════════════════
+const COLORS = ['#3b9eff','#f97316','#a78bfa','#34d399','#fb923c','#60a5fa',
+                '#fbbf24','#4ade80','#f472b6','#38bdf8','#c084fc','#2dd4bf'];
+
+// Photo mapping: warehouse ID → file path
+const PHOTOS = {
+  'B':   'datagudang/gudangB.jpg',
+  'C':   'datagudang/gudangC.jpg',
+  'D':   'datagudang/gudangD.jpg',
+  'E':   'datagudang/gudangE.jpg',
+  'F':   'datagudang/gudangF.jpg',
+  'G':   'datagudang/gudangG.jpg',
+  'H':   'datagudang/gudangH.jpg',
+  'I-1': 'datagudang/gudangI-1.jpg',
+  'I-2': 'datagudang/gudangI-2.jpg',
+  'J-1': 'datagudang/gudangJ-1.jpg',
+  'J-2': 'datagudang/gudangJ-2.jpg',
+  'K':   'datagudang/gudangK.jpg',
+  'L-1': 'datagudang/gudangL-1.jpg',
+  'L-2': 'datagudang/gudangL-2.jpg',
+  'M':   'datagudang/gudangM.jpg',
+  'MP-D':'datagudang/MP-D.jpg',
+  'MP-G':'datagudang/MP-G.jpg',
+  'MP-J':'datagudang/MP-J.jpg',
+  'MP-K':'datagudang/MP-K.jpg',
+  'OS':  'datagudang/Open Storage.jpg',
+};
+
+// Base paths for multi-photo probing (no extension / suffix)
+const PHOTO_BASE = {
+  'B':   'datagudang/gudangB',
+  'C':   'datagudang/gudangC',
+  'D':   'datagudang/gudangD',
+  'E':   'datagudang/gudangE',
+  'F':   'datagudang/gudangF',
+  'G':   'datagudang/gudangG',
+  'H':   'datagudang/gudangH',
+  'I-1': 'datagudang/gudangI-1',
+  'I-2': 'datagudang/gudangI-2',
+  'J-1': 'datagudang/gudangJ-1',
+  'J-2': 'datagudang/gudangJ-2',
+  'K':   'datagudang/gudangK',
+  'L-1': 'datagudang/gudangL-1',
+  'L-2': 'datagudang/gudangL-2',
+  'M':   'datagudang/gudangM',
+  'MP-D':'datagudang/MP-D',
+  'MP-G':'datagudang/MP-G',
+  'MP-J':'datagudang/MP-J',
+  'MP-K':'datagudang/MP-K',
+  'OS':  'datagudang/Open Storage',
+};
+
+// Carousel runtime state keyed by warehouse id
+const photoState = {};
+
+function buildingHTML(l) {
+  const wh = WH[l.id];
+  if (!wh) return '';
+  const {x, y, w, h} = l;
+  const isPenuh = wh.status === 'SPACE PENUH';
+  const pct     = Math.min(100, Math.round((wh.terpakai / Math.max(wh.space, 1)) * 100));
+  const sisa    = wh.space - wh.terpakai;
+
+  const fg     = isPenuh ? '#ef4444' : '#22c55e';
+  const bg     = isPenuh ? '#1e0707' : '#07200f';
+  const brdr   = isPenuh ? '#6b1515' : '#0f5a22';
+  const accent = isPenuh ? '#dc2626' : '#1a8a3a';
+  const fgSub  = isPenuh ? '#7a2222' : '#0e7a2a';
+  const barFg  = isPenuh ? '#dc2626' : '#1a6e2e';
+  const barBg  = isPenuh ? '#3d1212' : '#0d3318';
+
+  const cx       = x + w / 2;
+  const isSmall  = !!l.small;
+  const isLarge  = h > 150;
+  const isFlat   = !isSmall && !isLarge && h < 75;   // wide-but-short, e.g. Open Storage
+  const isDash   = l.dashed ? 'stroke-dasharray="5,3"' : '';
+  const accentW  = isSmall ? 3 : 4;
+
+  const fs     = isSmall ? 9 : (isLarge ? 13 : 11);
+  const nameY  = y + h * (isLarge ? 0.40 : isFlat ? 0.32 : 0.40);
+  const sizeY  = nameY + (isSmall ? 11 : (isLarge ? 17 : 13));
+
+  const pad   = isSmall ? 10 : 16;
+  const barW  = w - pad * 2;
+  // barY: isFlat → 65% dari atas agar ada ruang untuk nama di atas + status di bawah
+  const barY  = isFlat
+    ? y + Math.round(h * 0.65)
+    : y + Math.max(h - (isSmall ? 22 : 26), Math.floor(h * 0.1));
+  const fillW = Math.max(2, (pct / 100) * barW);
+  // statY: selalu di BAWAH bar (fix tumpang tindih nama↔status di h=40)
+  const statY = isSmall ? y + Math.round(h * 0.82) : barY + (isFlat ? 8 : 11);
+
+  const statFs    = (isSmall || isFlat) ? 7 : 8;
+  const statusTxt = isPenuh
+    ? ((isSmall || isFlat) ? `● PENUH · ${pct}%`               : `● SPACE PENUH · ${pct}%`)
+    : ((isSmall || isFlat) ? `● TERSEDIA · ${fmtNum(sisa)} m²`  : `● TERSEDIA · ${sisa > 0 ? fmtNum(sisa) + ' m²' : '0 m²'} sisa`);
+  const estTxtW   = statusTxt.length * ((isSmall || isFlat) ? 4.6 : 5.2);
+  const tlAttr    = estTxtW > barW ? `textLength="${r(barW)}" lengthAdjust="spacingAndGlyphs"` : '';
+  // Kompresi nama untuk bangunan sempit (K, J-1, J-2) atau sempit
+  const estNameW  = wh.name.length * (isSmall ? 6.2 : 7.2);
+  const nameTl    = estNameW > barW ? `textLength="${r(barW)}" lengthAdjust="spacingAndGlyphs"` : '';
+
+  // Doors
+  const nDoors = isSmall ? 0 : (w > 300 ? 4 : 3);  // MP (h=20): no doors, terlalu sempit
+  const dSp    = barW / (nDoors + 1);
+  let doors = '';
+  for (let i = 1; i <= nDoors; i++) {
+    const dx = x + pad + dSp * i - 8;
+    doors += `<rect x="${r(dx)}" y="${r(y+h-5)}" width="16" height="5" rx="1" fill="${brdr}" opacity="0.7"/>`;
+  }
+
+  // Extra label (large building)
+  let extra = '';
+  if (isLarge && wh.customers.length > 0) {
+    const nm = wh.customers[0].n;
+    const ln1 = nm.slice(0, 27);
+    const ln2 = nm.length > 27 ? nm.slice(27, 52) : '';
+    extra = `<text x="${cx}" y="${r(sizeY+18)}" font-size="8.5" fill="${fgSub}" text-anchor="middle" font-family="Arial">${ln1}</text>`;
+    if (ln2) extra += `<text x="${cx}" y="${r(sizeY+31)}" font-size="8.5" fill="${fgSub}" text-anchor="middle" font-family="Arial">${ln2}</text>`;
+  }
+
+  // Garis subdivisi bagian dalam bangunan (mis. M1/M2, H1/H2, K1/K2)
+  const secLines = (l.sections||[]).map(p => {
+    const lY = Math.round(y + h * p);
+    return `<line x1="${x + accentW + 2}" y1="${lY}" x2="${x + w - 2}" y2="${lY}" stroke="#0a1a2e" stroke-width="2" opacity="0.9"/>`;
+  }).join('');
+
+  return `
+<g class="wh" id="svgwh-${l.id}" onclick="selectWh('${l.id}')">
+  <rect class="wh-bg" x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${bg}" stroke="${brdr}" stroke-width="1" ${isDash}/>
+  <rect x="${x}" y="${y}" width="${accentW}" height="${h}" rx="2" fill="${accent}"/>
+  ${secLines}
+  <text class="wh-name" x="${cx}" y="${r(nameY)}" font-size="${fs}" font-weight="700" fill="${fg}" text-anchor="middle" font-family="Arial" ${nameTl}>${wh.name}</text>
+  ${(!isFlat && sizeY < y + h - 1) ? `<text x="${cx}" y="${r(sizeY)}" font-size="${isSmall?7:9}" fill="${fgSub}" text-anchor="middle" font-family="Arial" textLength="${r(barW)}" lengthAdjust="spacingAndGlyphs">${fmtNum(wh.space)} m²</text>` : ''}
+  ${extra}
+  ${!isSmall ? `<rect x="${r(x+pad)}" y="${r(barY)}" width="${r(barW)}" height="3" rx="1.5" fill="${barBg}"/>` : ''}
+  ${!isSmall ? `<rect x="${r(x+pad)}" y="${r(barY)}" width="${r(fillW)}" height="3" rx="1.5" fill="${barFg}"/>` : ''}
+  <text x="${cx}" y="${r(statY)}" font-size="${statFs}" fill="${fg}" text-anchor="middle" font-family="Arial" ${tlAttr}>${statusTxt}</text>
+  ${doors}
+</g>`;
+}
+
+function renderSVG() {
+  const layout = currentMapLayout || LAYOUT;
+  document.getElementById('svgWarehouses').innerHTML = layout.map(buildingHTML).join('');
+  // ViewBox: minimal 795×505 (agar road & kompas tidak terpotong), grow jika layout lebih besar
+  const maxX = Math.max(795, Math.max(...layout.map(l => l.x + l.w)) + 82);
+  const maxY = Math.max(505, Math.max(...layout.map(l => l.y + l.h)) + 20);
+  document.getElementById('plan').setAttribute('viewBox', `0 0 ${maxX} ${maxY}`);
+  renderStatsBox();
+}
+
+function renderStatsBox() {
+  document.getElementById('svgStats').innerHTML = '';
+}
+
+function updateStats() {
+  const keys     = Object.keys(WH);
+  const penuh    = Object.values(WH).filter(w => w.status === 'SPACE PENUH').length;
+  const tersedia = keys.length - penuh;
+  const totSp    = sum(w => w.space);
+  const totTp    = sum(w => w.terpakai);
+  const totSisa  = totSp - totTp;
+  const occ      = totSp ? Math.round((totTp / totSp) * 1000) / 10 : 0;
+
+  // Header stats bar
+  setText('hTotal',    keys.length);
+  setText('hPenuh',    penuh);
+  setText('hTersedia', tersedia);
+  setText('hOcc',      occ + '%');
+
+  // Resume footer
+  setText('fKapasitas', fmtNum(totSp));
+  setText('fTerpakai',  fmtNum(totTp));
+  setText('fSisa',      fmtNum(totSisa));
+  setText('fOcc',       occ + '%');
+  setText('fTotal',     keys.length);
+  setText('fPenuh',     penuh);
+  setText('fTersedia',  tersedia);
+
+  // Overall status pill
+  let pillLabel, pillColor;
+  if (occ === 0)       { pillLabel = 'KOSONG';           pillColor = '#4e6f9a'; }
+  else if (occ < 30)   { pillLabel = 'UTILISASI RENDAH'; pillColor = '#f59e0b'; }
+  else if (occ < 60)   { pillLabel = 'UTILISASI SEDANG'; pillColor = '#38bdf8'; }
+  else if (occ < 85)   { pillLabel = 'UTILISASI OPTIMAL';pillColor = '#22c55e'; }
+  else if (occ < 100)  { pillLabel = 'HAMPIR PENUH';     pillColor = '#fb923c'; }
+  else                 { pillLabel = 'PENUH';             pillColor = '#ef4444'; }
+
+  const pill = document.getElementById('fOccPill');
+  const dot  = document.getElementById('fOccDot');
+  const lbl  = document.getElementById('fOccLabel');
+  if (pill && dot && lbl) {
+    pill.style.color       = pillColor;
+    pill.style.borderColor = pillColor;
+    pill.style.background  = pillColor + '18';
+    dot.style.background   = pillColor;
+    dot.style.boxShadow    = `0 0 5px ${pillColor}`;
+    lbl.textContent        = pillLabel;
+  }
+
+  // Descriptive analysis row
+  const raEl = document.getElementById('resumeAnalysis');
+  if (raEl) {
+    const items = overallAnalysis(occ, penuh, tersedia, keys.length, totSp, totTp, totSisa);
+    raEl.innerHTML = items.map((t, i) => `
+<div class="ra-item">
+  <div class="ra-num">${i + 1}</div>
+  <div class="ra-text">${t}</div>
+</div>`).join('');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  OVERALL DESCRIPTIVE ANALYSIS (footer resume)
+// ═══════════════════════════════════════════════════════════════════
+
+function overallAnalysis(occ, penuh, tersedia, total, totSp, totTp, totSisa) {
+  const penuhPct = Math.round((penuh / Math.max(total, 1)) * 100);
+  const sisaPct  = Math.round((totSisa / Math.max(totSp, 1)) * 100);
+  const items    = [];
+
+  // ── 1. Kondisi utilisasi keseluruhan ──
+  if (occ === 0) {
+    items.push(`Seluruh kapasitas <b>${fmtNum(totSp)} m²</b> belum terisi — kompleks pergudangan dalam kondisi kosong total dan belum menghasilkan pendapatan sewa.`);
+  } else if (occ < 30) {
+    items.push(`Tingkat utilisasi <b>${occ}%</b> masih sangat rendah. Dari total <b>${fmtNum(totSp)} m²</b>, baru <b>${fmtNum(totTp)} m²</b> yang tersewa — potensi pendapatan <b>${fmtNum(totSisa)} m²</b> belum termanfaatkan.`);
+  } else if (occ < 60) {
+    items.push(`Utilisasi <b>${occ}%</b> berada di level moderat. Kapasitas terisi <b>${fmtNum(totTp)} m²</b> dari total <b>${fmtNum(totSp)} m²</b> — masih terdapat ruang ekspansi signifikan sebesar <b>${fmtNum(totSisa)} m²</b> (${sisaPct}%).`);
+  } else if (occ < 85) {
+    items.push(`Utilisasi <b>${occ}%</b> berada di zona optimal. <b>${fmtNum(totTp)} m²</b> dari total <b>${fmtNum(totSp)} m²</b> kapasitas aktif tersewa, menyisakan <b>${fmtNum(totSisa)} m²</b> sebagai buffer operasional dan peluang tenant baru.`);
+  } else if (occ < 100) {
+    items.push(`Utilisasi <b>${occ}%</b> mendekati kapasitas penuh. Hanya tersisa <b>${fmtNum(totSisa)} m²</b> (${sisaPct}%) — risiko tidak dapat mengakomodasi permintaan baru meningkat signifikan.`);
+  } else {
+    items.push(`Seluruh kapasitas <b>${fmtNum(totSp)} m²</b> terpakai penuh — tidak ada ruang tersedia untuk tenant baru. Kondisi ini mencerminkan permintaan yang sangat tinggi terhadap fasilitas pergudangan.`);
+  }
+
+  // ── 2. Distribusi & risiko portofolio gudang ──
+  if (penuh === 0) {
+    items.push(`Semua <b>${total} gudang</b> masih memiliki sisa kapasitas — belum ada gudang yang beroperasi penuh. Diperlukan strategi pemasaran lebih agresif untuk mendongkrak tingkat pengisian.`);
+  } else if (penuh === total) {
+    items.push(`Seluruh <b>${total} gudang</b> beroperasi penuh (100%). Permintaan penyewaan sangat kuat, namun kompleks tidak memiliki cadangan kapasitas untuk menghadapi fluktuasi permintaan mendadak.`);
+  } else if (penuhPct >= 60) {
+    items.push(`<b>${penuh} dari ${total} gudang</b> (${penuhPct}%) beroperasi penuh — mayoritas aset sudah dimanfaatkan maksimal. ${tersedia} gudang tersisa perlu diisi segera untuk memaksimalkan revenue portofolio.`);
+  } else {
+    items.push(`<b>${penuh} gudang penuh</b> dan <b>${tersedia} gudang masih tersedia</b> dari total ${total} unit — distribusi yang seimbang memberikan fleksibilitas operasional sekaligus peluang pertumbuhan pendapatan.`);
+  }
+
+  // ── 3. Rekomendasi strategis ──
+  if (occ < 40) {
+    items.push(`Rekomendasi: Luncurkan program promosi tarif kompetitif, tawarkan fleksibilitas durasi kontrak (bulanan/triwulan), dan jalin kemitraan dengan pelaku logistik untuk mempercepat pengisian kapasitas yang masih besar.`);
+  } else if (occ < 65) {
+    items.push(`Rekomendasi: Targetkan segmen FMCG, e-commerce, dan distribusi yang membutuhkan gudang fleksibel. Manfaatkan sisa <b>${fmtNum(totSisa)} m²</b> dengan strategi split-lease untuk mengakomodasi tenant skala kecil-menengah.`);
+  } else if (occ < 85) {
+    items.push(`Rekomendasi: Prioritaskan perpanjangan kontrak tenant eksisting untuk menjaga stabilitas occupancy. Siapkan pipeline tenant potensial dan optimalkan tarif sewa sesuai kondisi pasar yang favorable.`);
+  } else if (occ < 100) {
+    items.push(`Rekomendasi: Susun waiting list tenant, tinjau kenaikan tarif sewa mengikuti tingginya permintaan, dan evaluasi potensi ekspansi kapasitas atau optimasi tata letak untuk memaksimalkan area yang tersisa.`);
+  } else {
+    items.push(`Rekomendasi: Fokus pada pembaruan kontrak dengan tarif terbarukan, pertimbangkan review harga berkala untuk memaksimalkan pendapatan per m², serta kaji kelayakan pengembangan kapasitas baru guna mengakomodasi demand yang melebihi supply.`);
+  }
+
+  return items;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  MANAGEMENT ANALYSIS
+// ═══════════════════════════════════════════════════════════════════
+
+function layoutSVGHTML(wh) {
+  const L = wh.layout;
+  if (!L || !L.grid || !L.grid.length) return '';
+  const { grid, topDoors, bottomDoors, dimW, dimH, numRows, numCols, isAisle, tenants } = L;
+
+  // Match colors to customer list positions for consistency
+  const tenantColor = {};
+  tenants.forEach((t, i) => {
+    const ci = wh.customers.findIndex(c => {
+      const a = c.n.toLowerCase().replace(/\s+/g,'');
+      const b = t.toLowerCase().replace(/\s+/g,'');
+      return a === b || a.includes(b) || b.includes(a);
+    });
+    tenantColor[t] = COLORS[(ci >= 0 ? ci : i) % COLORS.length];
+  });
+
+  const CW = 18, AW = 4, CH = 11, PX = 4, PY = 18;
+  const colW = Array.from({length: numCols}, (_, c) => isAisle[c] ? AW : CW);
+  const totalW = colW.reduce((s, w) => s + w, 0);
+  const colX = [];
+  let cx = PX;
+  colW.forEach(w => { colX.push(cx); cx += w; });
+  const svgW = totalW + PX * 2;
+  const svgH = numRows * CH + PY * 2;
+
+  // Cells
+  let cellsSVG = '';
+  grid.forEach((row, ri) => {
+    let ci = 0;
+    while (ci < numCols) {
+      if (isAisle[ci] || !row[ci]) { ci++; continue; }
+      const t = row[ci];
+      let span = 1;
+      while (ci + span < numCols && !isAisle[ci + span] && row[ci + span] === t) span++;
+      const x = colX[ci];
+      const sw = colW.slice(ci, ci + span).reduce((s, w) => s + w, 0);
+      const y = PY + ri * CH;
+      const color = tenantColor[t];
+      const maxCh  = Math.max(2, Math.floor(sw / 5));
+      const short  = t.replace(/^(PT\.?\s+|CV\.?\s+)/i,'').replace(/\s+(INDONESIA|LESTARI|PETROCHEMICAL|LESTA).*/i,'').substring(0, maxCh);
+      const tLen   = sw - 2;
+      cellsSVG += `<g class="lt-cell"><rect x="${x}" y="${y}" width="${sw}" height="${CH}" fill="${color}22" stroke="${color}88" stroke-width="0.5" rx="1"><title>${t}</title></rect>`;
+      if (sw >= 10) cellsSVG += `<text x="${x+sw/2}" y="${y+CH/2+2.5}" font-size="3" fill="${color}" text-anchor="middle" font-family="Arial" font-weight="500" textLength="${tLen}" lengthAdjust="spacingAndGlyphs" pointer-events="none">${short}</text>`;
+      cellsSVG += `</g>`;
+      ci += span;
+    }
+  });
+
+  // Aisle shading
+  const aisleSVG = colX.map((x, ci) => isAisle[ci]
+    ? `<rect x="${x}" y="${PY}" width="${AW}" height="${numRows*CH}" fill="#071220" opacity="0.8"/>`
+    : ''
+  ).join('');
+
+  // Door markers
+  const mkDoor = (d, top) => {
+    const x = colX[d.col] !== undefined ? colX[d.col] : PX + d.col * CW;
+    const lbl = d.label.replace(/PINTU\s*/i,'P');
+    return top
+      ? `<rect x="${x}" y="${PY-6}" width="${CW}" height="6" fill="#3b9eff40" rx="1"/><text x="${x+CW/2}" y="${PY-8}" font-size="5" fill="#3b9eff" text-anchor="middle" font-family="Arial">${lbl}</text>`
+      : `<rect x="${x}" y="${PY+numRows*CH}" width="${CW}" height="6" fill="#3b9eff40" rx="1"/><text x="${x+CW/2}" y="${PY+numRows*CH+13}" font-size="5" fill="#3b9eff" text-anchor="middle" font-family="Arial">${lbl}</text>`;
+  };
+  const doorsSVG = [...(topDoors||[]).map(d=>mkDoor(d,true)), ...(bottomDoors||[]).map(d=>mkDoor(d,false))].join('');
+
+  const dimLabel = [dimH, dimW].filter(Boolean).join(' × ');
+
+  const legHTML = tenants.map(t => {
+    const color = tenantColor[t];
+    const lbl   = t.replace(/^(PT\.?\s+|CV\.?\s+)/i,'PT.').replace(/\s{2,}/g,' ').trim();
+    return `<div class="lt-leg-item">
+  <span class="lt-leg-swatch" style="background:${color}28;border-color:${color}"></span>
+  <span style="color:${color}">${lbl}</span>
+</div>`;
+  }).join('');
+
+  return `
+<div class="sec-title">DENAH LAYOUT GUDANG${dimLabel ? ` <span style="color:#2a4d7a;font-weight:400;font-size:.6rem">${dimLabel}</span>` : ''}</div>
+<div class="layout-wrap">
+<svg viewBox="0 0 ${svgW} ${svgH}" width="100%" style="background:#060f1c;border-radius:8px 8px 0 0;border:1px solid #1b2d48;border-bottom:none;display:block;overflow:visible">
+  <rect x="${PX}" y="${PY}" width="${totalW}" height="${numRows*CH}" fill="#0a1628" rx="2" stroke="#1b3050" stroke-width="0.5"/>
+  ${aisleSVG}${cellsSVG}${doorsSVG}
+</svg>
+<div style="background:#060f1c;border:1px solid #1b2d48;border-top:none;border-radius:0 0 8px 8px;padding:10px 12px 8px">
+  <div class="lt-legend">${legHTML}</div>
+</div>
+</div>`;
+}
+
+function fmtDate(d) {
+  if (!(d instanceof Date) || isNaN(d)) return '—';
+  const M = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agt','Sep','Okt','Nov','Des'];
+  return `${d.getDate()} ${M[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function contractNotifHTML(wh) {
+  const list = wh.contracts || [];
+  if (list.length === 0) return '';
+
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Sort: soonest expiry first
+  const sorted = [...list].sort((a, b) => {
+    const da = a.selesai instanceof Date ? a.selesai.getTime() : Infinity;
+    const db = b.selesai instanceof Date ? b.selesai.getTime() : Infinity;
+    return da - db;
+  });
+
+  const cards = sorted.map(c => {
+    const { customer, segmen, mulai, selesai } = c;
+    // Always recompute from selesai date so it's accurate today
+    let sisaDays = null;
+    if (selesai instanceof Date && !isNaN(selesai)) {
+      sisaDays = Math.round((selesai.getTime() - today.getTime()) / 86400000);
+    }
+    let color, bg, border, label;
+
+    if (sisaDays === null || sisaDays === undefined) {
+      color = '#4e6f9a'; bg = '#0a1628'; border = '#1b2d48';
+      label = 'DATA TIDAK LENGKAP';
+    } else if (sisaDays < 0) {
+      color = '#ef4444'; bg = '#1e0707'; border = '#6b1515';
+      label = `BERAKHIR ${Math.abs(sisaDays)} HARI LALU`;
+    } else if (sisaDays <= 30) {
+      color = '#ef4444'; bg = '#1e0707'; border = '#6b1515';
+      label = `⚠ SEGERA BERAKHIR`;
+    } else if (sisaDays <= 90) {
+      color = '#fb923c'; bg = '#1a1000'; border = '#6b3500';
+      label = `! AKAN BERAKHIR`;
+    } else if (sisaDays <= 180) {
+      color = '#f59e0b'; bg = '#1a1400'; border = '#5c4500';
+      label = 'PERHATIKAN';
+    } else {
+      color = '#22c55e'; bg = '#06200e'; border = '#0f5222';
+      label = 'AKTIF';
+    }
+
+    const sisaStr = sisaDays === null ? '—'
+      : sisaDays < 0  ? `Lewat ${Math.abs(sisaDays)} hari`
+      : sisaDays === 0 ? 'Berakhir hari ini!'
+      : `${sisaDays} hari lagi`;
+
+    return `
+<div class="kontrak-card" style="background:${bg};border-color:${border}">
+  <div class="kontrak-header">
+    <span class="kontrak-badge" style="color:${color};background:${color}1a;border-color:${color}40">${label}</span>
+    <span class="kontrak-sisa" style="color:${color}">${sisaStr}</span>
+  </div>
+  <div class="kontrak-cust">${customer}</div>
+  ${segmen ? `<div class="kontrak-period" style="color:#3d5c80;margin-bottom:2px">▸ ${segmen}</div>` : ''}
+  <div class="kontrak-period">📅 ${fmtDate(mulai)} &ndash; ${fmtDate(selesai)}</div>
+</div>`;
+  }).join('');
+
+  return `<div class="sec-title">NOTIFIKASI KONTRAK</div><div class="kontrak-section">${cards}</div>`;
+}
+
+function mgmtAnalysis(wh, pct, sisa) {
+  const n = wh.customers.length;
+  const tips = [];
+
+  // ── Occupancy assessment ──
+  let level, headline;
+  if (pct === 0) {
+    level = 'kosong'; headline = 'Gudang Kosong';
+    tips.push('Tidak ada tenant aktif. Segera jalankan strategi pemasaran untuk mengisi kapasitas.');
+  } else if (pct < 30) {
+    level = 'rendah'; headline = 'Utilisasi Sangat Rendah';
+    tips.push(`Hanya <b>${pct}%</b> kapasitas terpakai — potensi pendapatan <b>${fmtNum(sisa)} m²</b> masih belum termanfaatkan.`);
+  } else if (pct < 60) {
+    level = 'sedang'; headline = 'Utilisasi Moderat';
+    tips.push(`Tersisa <b>${fmtNum(sisa)} m²</b> (${100 - pct}%) yang dapat ditawarkan kepada tenant baru.`);
+  } else if (pct < 85) {
+    level = 'optimal'; headline = 'Utilisasi Optimal';
+    tips.push(`Tingkat penggunaan <b>${pct}%</b> berada di zona ideal. Prioritaskan perpanjangan kontrak tenant eksisting.`);
+  } else if (pct < 100) {
+    level = 'padat'; headline = 'Hampir Penuh';
+    tips.push(`Sisa kapasitas hanya <b>${fmtNum(sisa)} m²</b>. Siapkan waiting list untuk calon tenant dan evaluasi tarif sewa.`);
+  } else {
+    level = 'penuh'; headline = 'Kapasitas Penuh';
+    tips.push('Tidak ada ruang tersedia. Fokus pada optimasi tarif sewa dan pembaruan kontrak tenant aktif.');
+  }
+
+  // ── Tenant concentration risk ──
+  if (n === 0) {
+    tips.push('Belum ada tenant terdaftar — gudang siap disewakan sepenuhnya.');
+  } else if (n === 1) {
+    tips.push('Hanya <b>1 tenant</b> aktif — risiko ketergantungan tinggi. Pertimbangkan multi-tenant untuk stabilitas pendapatan.');
+  } else {
+    const largest    = Math.max(...wh.customers.map(c => c.s));
+    const largestPct = Math.round((largest / Math.max(wh.space, 1)) * 100);
+    if (largestPct > 65) {
+      tips.push(`<b>${n} tenant</b> aktif, namun 1 tenant mendominasi <b>${largestPct}%</b> kapasitas — pertimbangkan diversifikasi tenant.`);
+    } else {
+      tips.push(`<b>${n} tenant</b> aktif dengan distribusi yang sehat — meminimalkan risiko kekosongan mendadak.`);
+    }
+  }
+
+  // ── Actionable recommendation ──
+  if (pct < 40) {
+    tips.push('Rekomendasi: Tawarkan fleksibilitas kontrak jangka pendek atau insentif harga untuk menarik tenant baru.');
+  } else if (pct >= 85 && pct < 100) {
+    tips.push('Rekomendasi: Tinjau kenaikan tarif sewa dan susun pipeline tenant untuk antisipasi kekosongan.');
+  } else if (pct === 100) {
+    tips.push('Rekomendasi: Review tarif sewa berkala dan pastikan semua kontrak memiliki klausul perpanjangan otomatis.');
+  } else if (pct >= 40 && pct < 60) {
+    tips.push('Rekomendasi: Aktifkan program pemasaran terarah untuk mengisi sisa kapasitas secara optimal.');
+  }
+
+  const THEME = {
+    kosong:  { bg:'#0d1a28', border:'#1b3050', text:'#4e6f9a', dot:'#4e6f9a' },
+    rendah:  { bg:'#1a1200', border:'#5c4000', text:'#f59e0b', dot:'#f59e0b' },
+    sedang:  { bg:'#071828', border:'#1b3a5a', text:'#38bdf8', dot:'#38bdf8' },
+    optimal: { bg:'#06200e', border:'#0f5222', text:'#22c55e', dot:'#22c55e' },
+    padat:   { bg:'#1a1000', border:'#6b4000', text:'#fb923c', dot:'#fb923c' },
+    penuh:   { bg:'#1e0707', border:'#6b1515', text:'#ef4444', dot:'#ef4444' },
+  };
+  const c = THEME[level];
+
+  return `
+<div class="sec-title">ANALISA MANAJEMEN</div>
+<div class="analysis-card" style="background:${c.bg};border-color:${c.border}">
+  <div class="analysis-header">
+    <span class="analysis-dot" style="background:${c.dot};box-shadow:0 0 6px ${c.dot}"></span>
+    <span class="analysis-level" style="color:${c.text}">${headline}</span>
+    <span class="analysis-pct" style="color:${c.text}">${pct}% terpakai</span>
+  </div>
+  <ul class="analysis-tips">
+    ${tips.map(t => `<li>${t}</li>`).join('')}
+  </ul>
+</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  DETAIL PANEL
+// ═══════════════════════════════════════════════════════════════════
+let current = null;
+
+function selectWh(id) {
+  if (current) {
+    const prev = document.getElementById('svgwh-' + current);
+    if (prev) prev.classList.remove('selected');
+  }
+  current = id;
+  const el = document.getElementById('svgwh-' + id);
+  if (el) el.classList.add('selected');
+
+  const wh = WH[id];
+  document.getElementById('dpEmpty').style.display  = 'none';
+  document.getElementById('dpDetail').style.display = 'block';
+  document.getElementById('dpClose').style.display  = 'block';
+
+  const isPenuh  = wh.status === 'SPACE PENUH';
+  const pct      = Math.min(100, Math.round((wh.terpakai / Math.max(wh.space,1)) * 100));
+  const sisa     = wh.space - wh.terpakai;
+  const stClass  = isPenuh ? 'penuh' : 'tersedia';
+  const stColor  = isPenuh ? '#ef4444' : '#22c55e';
+
+  // Gauge ring
+  const r2 = 34, circ = 2 * Math.PI * r2;
+  const dash = (pct / 100) * circ;
+  const gCol = isPenuh ? '#ef4444' : '#22c55e';
+
+  const custHTML = wh.customers.length === 0
+    ? `<p style="color:#2a4d7a;font-size:.78rem;text-align:center;padding:16px 0">Belum ada tenant terdaftar</p>`
+    : wh.customers.map((c, i) => {
+        const pctC = Math.round((c.s / wh.space) * 100);
+        const col  = COLORS[i % COLORS.length];
+        return `
+<div class="cust-item" style="border-left-color:${col}">
+  <div class="cust-top">
+    <div class="cust-name">${c.n}</div>
+    <div class="cust-space" style="color:${col}">${fmtNum(c.s)} m²</div>
+  </div>
+  ${c.j ? `<div class="cust-jenis">📦 ${c.j}</div>` : ''}
+  <div class="cust-bar-track"><div class="cust-bar-fill" style="width:${pctC}%;background:${col}"></div></div>
+</div>`;
+      }).join('');
+
+  // Build photo carousel skeleton (photos loaded async after innerHTML set)
+  const photoHTML = `
+<div class="photo-area" id="pa-${id}">
+  <div class="photo-slides" id="ps-${id}"></div>
+  <div class="photo-overlay"></div>
+  <span class="photo-name">${wh.name}</span>
+  <span class="photo-badge ${stClass}">${wh.status}</span>
+  <button class="photo-nav prev hidden" id="pnp-${id}" onclick="slidePhoto('${id}',-1)">&#8249;</button>
+  <button class="photo-nav next hidden" id="pnn-${id}" onclick="slidePhoto('${id}',1)">&#8250;</button>
+  <div class="photo-dots" id="pd-${id}"></div>
+  <div class="photo-count hidden" id="pc-${id}"></div>
+  <div class="photo-placeholder" id="pp-${id}">
+    <div class="spinner"></div>
+  </div>
+</div>`;
+
+  document.getElementById('dpDetail').innerHTML = `
+<div class="wh-header">
+  <div class="wh-icon">🏭</div>
+  <div class="wh-title">
+    <h3>${wh.name}</h3>
+    <p>${wh.type} · Kanwil DKI Jakarta</p>
+  </div>
+</div>
+
+${photoHTML}
+
+<div class="gauge-metrics">
+  <div class="gauge-wrap">
+    <svg width="96" height="96" viewBox="0 0 96 96">
+      <circle cx="48" cy="48" r="${r2}" fill="none" stroke="#1b2d48" stroke-width="9"/>
+      <circle cx="48" cy="48" r="${r2}" fill="none" stroke="${gCol}" stroke-width="9"
+        stroke-dasharray="${dash.toFixed(1)} ${circ.toFixed(1)}" stroke-linecap="round"
+        transform="rotate(-90 48 48)" opacity=".9"/>
+      <text x="48" y="44" font-size="15" font-weight="700" fill="${gCol}" text-anchor="middle" font-family="Arial">${pct}%</text>
+      <text x="48" y="57" font-size="7" fill="#4e6f9a" text-anchor="middle" font-family="Arial">OCCUPANCY</text>
+    </svg>
+  </div>
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="mv">${fmtNum(wh.space)}</div>
+      <div class="ml">Total m²</div>
+    </div>
+    <div class="metric-card">
+      <div class="mv" style="color:${stColor}">${fmtNum(wh.terpakai)}</div>
+      <div class="ml">Terpakai m²</div>
+    </div>
+    <div class="metric-card metric-full">
+      <div class="mv" style="color:${sisa<=0?'#ef4444':'#22c55e'}">${fmtNum(sisa)}</div>
+      <div class="ml">Sisa Tersedia m²</div>
+    </div>
+  </div>
+</div>
+
+<div class="prog-wrap">
+  <div class="prog-header"><span>Tingkat Penggunaan</span><span>${pct}% terpakai</span></div>
+  <div class="prog-track"><div class="prog-fill ${stClass}" style="width:${pct}%"></div></div>
+</div>
+
+<div class="status-row">
+  <div class="status-chip ${stClass}">
+    <div class="status-dot" style="background:${stColor}"></div>${wh.status}
+  </div>
+  <div class="status-chip" style="color:#4e6f9a">
+    ${wh.customers.length} Tenant Aktif
+  </div>
+</div>
+
+${mgmtAnalysis(wh, pct, sisa)}
+
+${wh.customers.length > 0 ? '<div class="sec-title">ISI / TENANT AKTIF</div>' : ''}
+<div class="cust-list">${custHTML}</div>
+
+${contractNotifHTML(wh)}
+
+${wh.layout ? `<button class="denah-btn" onclick="openLayoutModal('${id}')">📐 &nbsp;LIHAT DENAH LAYOUT GUDANG</button>` : ''}`;
+
+  // Async: probe and load photos after DOM is ready
+  loadPhotosForWh(id);
+}
+
+function openLayoutModal(id) {
+  const wh = WH[id];
+  if (!wh) return;
+  const L = wh.layout;
+  const dim = L ? [L.dimH, L.dimW].filter(Boolean).join(' × ') : '';
+  document.getElementById('lmTitle').textContent = 'DENAH LAYOUT GUDANG · ' + wh.name;
+  document.getElementById('lmSub').textContent = dim || wh.type + ' · Kanwil DKI Jakarta';
+  const html = layoutSVGHTML(wh);
+  document.getElementById('lmBody').innerHTML = html || '<div class="lm-empty">Data denah layout belum tersedia untuk gudang ini.<br>Upload file Excel dengan sheet gudang yang berisi data layout.</div>';
+  document.getElementById('layoutModal').classList.add('active');
+}
+
+function closeLayoutModal() {
+  document.getElementById('layoutModal').classList.remove('active');
+}
+
+function closePanel() {
+  if (current) {
+    stopAutoSlide(current);
+    const el = document.getElementById('svgwh-' + current);
+    if (el) el.classList.remove('selected');
+    current = null;
+  }
+  document.getElementById('dpEmpty').style.display  = 'block';
+  document.getElementById('dpDetail').style.display = 'none';
+  document.getElementById('dpClose').style.display  = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  PHOTO CAROUSEL ENGINE
+// ═══════════════════════════════════════════════════════════════════
+
+function probeImage(src) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload  = () => resolve(true);
+    img.onerror = () => resolve(false);
+    img.src = src;
+  });
+}
+
+async function loadPhotosForWh(id) {
+  const base = PHOTO_BASE[id];
+  const exts = ['jpg','jpeg','png','webp'];
+  let urls = [];
+
+  if (base) {
+    // Probe numbered variants first: base_1, base_2, … up to 20
+    for (let n = 1; n <= 20; n++) {
+      let found = false;
+      for (const ext of exts) {
+        const src = `${base}_${n}.${ext}`;
+        if (await probeImage(src)) { urls.push(src); found = true; break; }
+      }
+      if (!found) break;
+    }
+    // Fallback: single un-numbered file
+    if (urls.length === 0) {
+      for (const ext of exts) {
+        const src = `${base}.${ext}`;
+        if (await probeImage(src)) { urls.push(src); break; }
+      }
+    }
+  }
+
+  // Guard: panel may have closed while probing
+  const slidesEl = document.getElementById('ps-' + id);
+  const placeholder = document.getElementById('pp-' + id);
+  if (!slidesEl) return;
+
+  if (urls.length === 0) {
+    if (placeholder) {
+      placeholder.innerHTML = '<div class="pi">🏭</div><span>Foto tidak tersedia</span>';
+      placeholder.style.display = 'flex';
+    }
+    return;
+  }
+
+  // Hide placeholder
+  if (placeholder) placeholder.style.display = 'none';
+
+  // Build slides
+  slidesEl.innerHTML = urls.map(u =>
+    `<div class="photo-slide"><img src="${u}" alt="foto" loading="lazy"></div>`
+  ).join('');
+
+  // Init state
+  photoState[id] = { urls, idx: 0, timer: null };
+
+  // Render navigation UI
+  updateCarouselUI(id);
+
+  // Auto-advance if more than one photo
+  if (urls.length > 1) startAutoSlide(id);
+}
+
+function updateCarouselUI(id) {
+  const st = photoState[id];
+  if (!st) return;
+  const { urls, idx } = st;
+  const total = urls.length;
+
+  // Slide strip position
+  const strip = document.getElementById('ps-' + id);
+  if (strip) strip.style.transform = `translateX(-${idx * 100}%)`;
+
+  // Nav buttons
+  const prev = document.getElementById('pnp-' + id);
+  const next = document.getElementById('pnn-' + id);
+  if (prev) prev.classList.toggle('hidden', total <= 1);
+  if (next) next.classList.toggle('hidden', total <= 1);
+
+  // Count badge
+  const count = document.getElementById('pc-' + id);
+  if (count) {
+    count.textContent = `${idx + 1} / ${total}`;
+    count.classList.toggle('hidden', total <= 1);
+  }
+
+  // Dots
+  const dotsEl = document.getElementById('pd-' + id);
+  if (dotsEl) {
+    dotsEl.innerHTML = total <= 1 ? '' :
+      urls.map((_, i) =>
+        `<span class="photo-dot${i === idx ? ' active' : ''}" onclick="goToSlide('${id}',${i})"></span>`
+      ).join('');
+  }
+}
+
+function slidePhoto(id, dir) {
+  const st = photoState[id];
+  if (!st) return;
+  const total = st.urls.length;
+  st.idx = (st.idx + dir + total) % total;
+  updateCarouselUI(id);
+  resetAutoSlide(id);
+}
+
+function goToSlide(id, idx) {
+  const st = photoState[id];
+  if (!st) return;
+  st.idx = idx;
+  updateCarouselUI(id);
+  resetAutoSlide(id);
+}
+
+function startAutoSlide(id) {
+  const st = photoState[id];
+  if (!st || st.urls.length <= 1) return;
+  st.timer = setInterval(() => slidePhoto(id, 1), 4000);
+}
+
+function stopAutoSlide(id) {
+  const st = photoState[id];
+  if (st && st.timer) { clearInterval(st.timer); st.timer = null; }
+}
+
+function resetAutoSlide(id) {
+  stopAutoSlide(id);
+  startAutoSlide(id);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  EXCEL UPLOAD & PARSING
+// ═══════════════════════════════════════════════════════════════════
+
+// ── Parse MAP sheet → dynamic site plan layout ───────────────────
+function resolveMapId(raw) {
+  const s = String(raw).trim().toUpperCase()
+    .replace(/^GUDANG\s+/i, '')
+    .replace(/\s+/g, '-');
+  const known = ['B','C','D','E','F','G','H','K','M','OS','COLD',
+                 'I-1','I-2','J-1','J-2','L-1','L-2',
+                 'MP-D','MP-G','MP-J','MP-K'];
+  if (known.includes(s)) return s;
+  const ALT = {
+    'L1':'L-1','L2':'L-2','I1':'I-1','I2':'I-2','J1':'J-1','J2':'J-2',
+    'MPD':'MP-D','MP-D':'MP-D','MPG':'MP-G','MP-G':'MP-G',
+    'MPJ':'MP-J','MP-J':'MP-J','MPK':'MP-K','MP-K':'MP-K',
+    'OPEN':'OS','OPEN-STORAGE':'OS','COLD-STORAGE':'COLD',
+    'MINI-PLATFORM-D':'MP-D','MINI-PLATFORM-G':'MP-G',
+    'MINI-PLATFORM-J':'MP-J','MINI-PLATFORM-K':'MP-K',
+  };
+  return ALT[s] || null;
+}
+
+function parseMapSheet(wb) {
+  // Look for MAP sheet under various names
+  const names = ['MAP','PETA GUDANG','DENAH AREA','SITE PLAN','LAYOUT AREA','PETA'];
+  let ws = null;
+  for (const n of names) {
+    ws = wb.Sheets[n] || wb.Sheets[n.toLowerCase()] || null;
+    if (ws) break;
+  }
+  // Flexible case-insensitive search
+  if (!ws) {
+    for (const sn of wb.SheetNames) {
+      if (names.some(n => sn.trim().toUpperCase() === n)) { ws = wb.Sheets[sn]; break; }
+    }
+  }
+  if (!ws || !ws['!ref']) return null;
+
+  const range  = XLSX.utils.decode_range(ws['!ref']);
+  const merges = ws['!merges'] || [];
+
+  // Build merge map: top-left "r,c" → {rs, cs}, non-top-left → skip set
+  const skip = new Set();
+  const mSpan = {};
+  for (const m of merges) {
+    mSpan[`${m.s.r},${m.s.c}`] = { rs: m.e.r - m.s.r + 1, cs: m.e.c - m.s.c + 1 };
+    for (let r = m.s.r; r <= m.e.r; r++)
+      for (let c = m.s.c; c <= m.e.c; c++)
+        if (r !== m.s.r || c !== m.s.c) skip.add(`${r},${c}`);
+  }
+
+  const numRows = range.e.r - range.s.r + 1;
+  const numCols = range.e.c - range.s.c + 1;
+  const items   = [];
+
+  for (let r = range.s.r; r <= range.e.r; r++) {
+    for (let c = range.s.c; c <= range.e.c; c++) {
+      if (skip.has(`${r},${c}`)) continue;
+      const cell = ws[XLSX.utils.encode_cell({r, c})];
+      if (!cell || !cell.v) continue;
+      const id = resolveMapId(String(cell.v));
+      if (!id) continue;
+      const sp = mSpan[`${r},${c}`] || { rs:1, cs:1 };
+      items.push({ id,
+        row: r - range.s.r, col: c - range.s.c,
+        rowSpan: sp.rs, colSpan: sp.cs });
+    }
+  }
+  if (!items.length) return null;
+
+  // Scale grid to SVG coordinates
+  const SVG_W = 790, SVG_H = 520, PAD = 5, GAP = 5;
+  const cellW = (SVG_W - PAD * 2) / numCols;
+  const cellH = (SVG_H - PAD * 2) / numRows;
+
+  return items.map(({ id, row, col, rowSpan, colSpan }) => ({
+    id,
+    x: Math.round(PAD + col * cellW + GAP / 2),
+    y: Math.round(PAD + row * cellH + GAP / 2),
+    w: Math.round(colSpan * cellW - GAP),
+    h: Math.round(rowSpan * cellH - GAP),
+    ...(id.startsWith('MP')     ? { small:  true } : {}),
+    ...(id === 'OS'             ? { dashed: true } : {}),
+    ...(id === 'COLD'           ? { dashed: true } : {}),
+    ...(['M','OS'].includes(id) ? { large:  true } : {}),
+  }));
+}
+
+// Sheet name → internal warehouse ID
+const SHEET_ID_MAP = {
+  'Gudang B':'B','Gudang C':'C','Gudang D':'D','Gudang E':'E',
+  'Gudang F':'F','Gudang G':'G','Gudang H':'H',
+  'Gudang I-1':'I-1','Gudang I-2':'I-2',
+  'Gudang J-1':'J-1','Gudang J-2':'J-2',
+  'Gudang K':'K','Gudang L-1':'L-1','Gudang L-2':'L-2','Gudang M':'M',
+  'MP-D':'MP-D','MP-G':'MP-G','MP-J':'MP-J','MP-K':'MP-K',
+  'Open Storage':'OS','COLD STORAGE':'COLD',
+};
+
+// Console sheet name → internal ID
+const CONSOLE_ID_MAP = {
+  'Gudang B':'B','Gudang C':'C','Gudang D':'D','Gudang E':'E',
+  'Gudang F':'F','Gudang G':'G','Gudang H':'H',
+  'Gudang I-1':'I-1','Gudang I-2':'I-2',
+  'Gudang J-1':'J-1','Gudang J-2':'J-2',
+  'Gudang K':'K','Gudang L-1':'L-1','Gudang L-2':'L-2','Gudang M':'M',
+  'MP-G':'MP-G','MP-D':'MP-D','MP-J':'MP-J','MP-K':'MP-K',
+  'Open Storage':'OS','Cold Storage':'COLD',
+};
+
+const SKIP_RX = /^(sisa\s*space|status\s*gudang|total\s*terpakai|space\s*gudang|informasi\s*gudang|customer|layout\s*gudang|area|pintu)/i;
+const INFO_VAL_RX = /^(space\s*gudang|total\s*terpakai|sisa\s*space|status\s*gudang|informasi\s*gudang)/i;
+
+function parseLayoutFromRows(rows) {
+  let state = 'before'; // before → in → after
+  const gridRows = [];
+  let topDoors = [], bottomDoors = [], gotTopDoors = false;
+  let dimW = '', dimH = '';
+
+  for (const row of rows) {
+    if (!row) continue;
+    const nonNull = row.filter(v => v != null);
+    if (!nonNull.length) continue;
+    const first = String(nonNull[0]).trim();
+
+    if (first === 'CUSTOMER') break;
+    if (/^(LAYOUT\s+GUDANG)/i.test(first)) continue; // Skip title row
+
+    // Standalone dimension row (e.g. '100 M', '96,6 M')
+    if (/^\d[\d,.]*\s*M$/i.test(first)) { dimH = first; continue; }
+
+    // AREA boundary — check ANY cell in the row (not only first)
+    const hasArea = row.some(v => v != null && String(v).trim() === 'AREA');
+    if (hasArea) {
+      const last = String(nonNull[nonNull.length - 1]).trim();
+      if (/^\d/.test(last) && /M$/i.test(last)) dimW = last;
+      state = state === 'before' ? 'in' : 'after';
+      continue;
+    }
+    if (state !== 'in') continue;
+
+    // PINTU / door row
+    if (row.some(v => v != null && /^PINTU/i.test(String(v)))) {
+      const doors = row.map((v, ci) =>
+        (v != null && /^PINTU/i.test(String(v))) ? { label: String(v), col: ci } : null
+      ).filter(Boolean);
+      if (!gotTopDoors && gridRows.length === 0) { topDoors = doors; gotTopDoors = true; }
+      else bottomDoors = doors;
+      continue;
+    }
+
+    // Layout row — must have at least one company-name string
+    const hasTenant = row.some(v =>
+      v != null && typeof v === 'string' && v.trim().length > 2 && !/^\d/.test(v.trim())
+    );
+    if (!hasTenant) continue;
+
+    gridRows.push(row.map(v =>
+      (v != null && typeof v === 'string' && v.trim().length > 2 && !/^\d/.test(v.trim()))
+        ? v.trim() : null
+    ));
+  }
+
+  // ── Fallback: no AREA markers found — scan rows directly ─────────
+  if (!gridRows.length) {
+    // Exclude non-tenant strings: summary headers, keywords, short values
+    const isTenantVal = v => v != null && typeof v === 'string'
+      && v.trim().length > 2 && !/^\d/.test(v.trim())
+      && !/^(AREA|PINTU|LAYOUT|WAREHOUSE|OFFICE|CUSTOMER|GUDANG|OPEN\s|Space\s|Total\s|Sisa\s|Status\s)/i.test(v.trim())
+      && !/^(SPACE|ADDITIONAL|JENIS|INFO|STATUS|TENANT|NO\.?$)/i.test(v.trim());
+
+    let pastBottomPintu = false;
+    for (const row of rows) {
+      if (!row) continue;
+      // Stop at customer summary header row
+      if (row.some(c => c === 'CUSTOMER' || c === 'Space Gudang')) break;
+
+      // PINTU row
+      if (row.some(v => v != null && /^PINTU/i.test(String(v)))) {
+        const doors = row.map((v, ci) =>
+          (v != null && /^PINTU/i.test(String(v))) ? { label: String(v), col: ci } : null
+        ).filter(Boolean);
+        if (!gotTopDoors && gridRows.length === 0) {
+          topDoors = doors; gotTopDoors = true;  // top PINTU (before any grid rows)
+        } else {
+          bottomDoors = doors; pastBottomPintu = true; // bottom PINTU → stop after this
+        }
+        continue;
+      }
+
+      // Stop collecting after bottom PINTU row
+      if (pastBottomPintu) continue;
+
+      if (row.some(isTenantVal)) {
+        gridRows.push(row.map(v => isTenantVal(v) ? v.trim() : null));
+      }
+    }
+  }
+
+  if (!gridRows.length) return null;
+
+  // ── Dimension recovery: scan all cells for "angka M" if not fully captured ──
+  if (!dimH || !dimW) {
+    for (const row of rows) {
+      if (!row) continue;
+      for (const v of row) {
+        if (v == null) continue;
+        const s = String(v).trim();
+        if (/^\d[\d,.]*\s*M$/i.test(s)) {
+          if (!dimH) dimH = s;
+          else if (!dimW && s !== dimH) dimW = s;
+        }
+      }
+      if (dimH && dimW) break;
+    }
+  }
+
+  // Find effective column count
+  let maxCol = 0;
+  gridRows.forEach(r => {
+    for (let c = r.length - 1; c >= 0; c--) {
+      if (r[c] !== null) { maxCol = Math.max(maxCol, c + 1); break; }
+    }
+  });
+
+  const grid = gridRows.map(r =>
+    Array.from({ length: maxCol }, (_, c) => (c < r.length ? r[c] : null))
+  );
+
+  // Columns where every row is null → aisle/corridor
+  const isAisle = Array.from({ length: maxCol }, (_, c) => grid.every(r => r[c] === null));
+
+  const tenants = [...new Set(grid.flat().filter(Boolean))];
+  return { grid, topDoors, bottomDoors, dimW, dimH, numRows: grid.length, numCols: maxCol, isAisle, tenants };
+}
+
+function parseExcelData(buffer) {
+  const wb = XLSX.read(buffer, {type:'array', cellDates:true});
+  const newWH = {};
+
+  // ── 1. Parse CONSOLE sheet (warehouse summary) ──────────────────
+  const consoleSheet = wb.Sheets['CONSOLE'];
+  if (consoleSheet) {
+    const rows = XLSX.utils.sheet_to_json(consoleSheet, {header:1, defval:null});
+    // Find header row containing 'GUDANG'
+    let hi = -1;
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i] && rows[i].some(c => c === 'GUDANG')) { hi = i; break; }
+    }
+    if (hi >= 0) {
+      const hdr     = rows[hi];
+      const gI      = hdr.indexOf('GUDANG');
+      const spI     = hdr.indexOf('SPACE');
+      const tpI     = hdr.indexOf('TERPAKAI');
+      const stI     = hdr.indexOf('STATUS GUDANG');
+      const custI   = hdr.indexOf('CUSTOMER');
+      const mulaiI  = hdr.indexOf('MULAI');
+      const selesaiI= hdr.indexOf('SELESAI');
+
+      for (let i = hi + 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row || !row[gI] || typeof row[spI] !== 'number') continue;
+        const nm = String(row[gI]).trim();
+        const id = CONSOLE_ID_MAP[nm];
+        if (!id) continue;
+
+        // Contract data (may be null for some warehouses)
+        const kCust   = custI   >= 0 && row[custI]   ? String(row[custI]).trim()   : null;
+        const kMulai  = mulaiI  >= 0 ? row[mulaiI]   : null;
+        const kSelesai= selesaiI>= 0 ? row[selesaiI] : null;
+        let   sisaDays = null;
+        if (kSelesai instanceof Date) {
+          const today = new Date(); today.setHours(0,0,0,0);
+          sisaDays = Math.round((kSelesai.getTime() - today.getTime()) / 86400000);
+        }
+        const contracts = (kCust && kSelesai)
+          ? [{ customer: kCust, mulai: kMulai, selesai: kSelesai, sisaDays }]
+          : [];
+
+        newWH[id] = {
+          name:      nm,
+          type:      typeFromId(id),
+          space:     row[spI] || 0,
+          terpakai:  row[tpI] || 0,
+          status:    row[stI] || 'SPACE TERSEDIA',
+          customers: [],
+          contracts,
+        };
+      }
+    }
+  }
+
+  // Fill any IDs present in default WH but missing from CONSOLE
+  for (const id of Object.keys(WH)) {
+    if (!newWH[id]) newWH[id] = {...WH[id], customers:[], contracts:[]};
+  }
+
+  // ── 2. Parse individual warehouse sheets (customer detail) ──────
+  // Build flexible sheet→id lookup: normalize by lowercasing + stripping spaces/dashes
+  const _norm = s => String(s).toLowerCase().replace(/[\s\-_]+/g, '');
+  const flexSheetMap = {};
+  for (const [key, id] of Object.entries(SHEET_ID_MAP)) {
+    flexSheetMap[_norm(key)] = id;
+    flexSheetMap[_norm(id)]  = id; // also map bare ID (e.g. "l1" → 'L-1')
+  }
+  const resolveSheetId = sn => SHEET_ID_MAP[sn] || flexSheetMap[_norm(sn)] || null;
+
+  console.log('[DEBUG] Semua sheet:', wb.SheetNames);
+
+  for (const sheetName of wb.SheetNames) {
+    const id = resolveSheetId(sheetName);
+    if (!id || !newWH[id]) continue;
+
+    const ws   = wb.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+    console.log(`[DEBUG] Sheet="${sheetName}" → id="${id}" rows=${rows.length}`);
+
+    // ── Layout parse ALWAYS (even if no customer summary section) ───
+    const layout = parseLayoutFromRows(rows);
+    if (layout) newWH[id].layout = layout;
+    if (!layout) console.warn(`[DEBUG] Layout NULL untuk "${sheetName}". 15 baris pertama:`, rows.slice(0,15));
+
+    // ── Customer summary (optional — skip if section not found) ─────
+    let summaryStart = -1;
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i] && rows[i].some(c => c === 'CUSTOMER' || c === 'Space Gudang')) {
+        summaryStart = i + 1;
+        break;
+      }
+    }
+    if (summaryStart < 0) continue;
+
+    const customers = [];
+    for (let i = summaryStart; i < rows.length; i++) {
+      const row = rows[i];
+      if (!row || !row[0] || typeof row[0] !== 'string') continue;
+      const name = row[0].toString().trim();
+      if (!name || SKIP_RX.test(name)) continue;
+
+      // col[2] = SPACE m², col[3] = ADDITIONAL m², col[4] = JENIS BARANG
+      const space = typeof row[2] === 'number' ? Math.abs(row[2]) : 0;
+      if (space <= 0) continue;
+
+      let jenis = undefined;
+      if (row[4] && typeof row[4] === 'string') {
+        const v = row[4].trim();
+        if (!INFO_VAL_RX.test(v) && !SKIP_RX.test(v)) jenis = v;
+      }
+      customers.push({n: name, s: space, ...(jenis ? {j: jenis} : {})});
+    }
+    if (customers.length > 0) newWH[id].customers = customers;
+  }
+
+  // ── 3. Parse sheet Kontrak — active contracts ────────────────────
+  const kSheet = wb.Sheets['Kontrak'] || wb.Sheets['KONTRAK'] || wb.Sheets['kontrak'];
+  if (kSheet) {
+    const kRows = XLSX.utils.sheet_to_json(kSheet, {header:1, defval:null});
+
+    // Header: row 0 has PELANGGAN, LOKASI, LUAS, UoM, Periode Kontrak
+    // Sub-header: row 1 has Mulai, Selesai under Periode Kontrak
+    // Data starts at row 2 (auto-detect by finding PELANGGAN + LOKASI)
+    let hdrRow = 0, subRow = 1, dataStart = 2;
+    for (let i = 0; i < Math.min(kRows.length, 6); i++) {
+      const up = (kRows[i]||[]).map(c => String(c||'').trim().toUpperCase());
+      if (up.includes('PELANGGAN') && up.includes('LOKASI')) {
+        hdrRow = i; subRow = i + 1; dataStart = i + 2; break;
+      }
+    }
+
+    const hdr = (kRows[hdrRow]||[]).map(c => String(c||'').trim().toUpperCase());
+    const sub = (kRows[subRow] ||[]).map(c => String(c||'').trim().toUpperCase());
+
+    const cuI = hdr.indexOf('PELANGGAN');
+    const lkI = hdr.indexOf('LOKASI');
+    const lwI = hdr.indexOf('LUAS');
+    const umI = hdr.indexOf('UOM');
+    let mlI = hdr.indexOf('MULAI');   if (mlI < 0) mlI = sub.indexOf('MULAI');
+    let slI = hdr.indexOf('SELESAI'); if (slI < 0) slI = sub.indexOf('SELESAI');
+    // Fallback: Periode Kontrak spans two columns → Mulai then Selesai
+    if (mlI < 0) {
+      const pk = hdr.indexOf('PERIODE KONTRAK');
+      if (pk >= 0) { mlI = pk; slI = pk + 1; }
+    }
+
+    // LOKASI → warehouse ID(s)
+    const LOK_MAP = {
+      'B':['B'],'C':['C'],'D':['D'],'E':['E'],'F':['F'],'G':['G'],
+      'H':['H'],'I-1':['I-1'],'I-2':['I-2'],'J-1':['J-1'],'J-2':['J-2'],
+      'K':['K'],'M':['M'],'OS':['OS'],
+      'L':['L-1','L-2'],
+      'MP':['MP-D','MP-G','MP-J','MP-K'],
+      'COLD STORAGE':['COLD']
+    };
+
+    const toDate = v => {
+      if (!v) return null;
+      if (v instanceof Date) return isNaN(v) ? null : v;
+      if (typeof v === 'number') return new Date(Math.round((v - 25569) * 86400000));
+      const d = new Date(v); return isNaN(d) ? null : d;
+    };
+
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    // Clear existing contracts
+    Object.keys(newWH).forEach(id => { newWH[id].contracts = []; });
+
+    for (let r = dataStart; r < kRows.length; r++) {
+      const row = kRows[r];
+      if (!row || !row.some(Boolean)) continue;
+
+      // Active = Selesai >= today (no STATUS column)
+      const selesai = toDate(slI >= 0 ? row[slI] : null);
+      if (!selesai || selesai < today) continue;
+
+      const lok = String(row[lkI]||'').trim().toUpperCase();
+      const ids = LOK_MAP[lok] || [];
+      if (!ids.length) continue;
+
+      const customer = cuI >= 0 ? String(row[cuI]||'').trim() : '';
+      const mulai    = toDate(mlI >= 0 ? row[mlI] : null);
+      const luas     = lwI >= 0 && row[lwI] != null ? String(row[lwI]).trim() : '';
+      const uom      = umI >= 0 && row[umI] != null ? String(row[umI]).trim() : '';
+      const segmen   = luas ? (uom ? `${luas} ${uom}` : luas) : '';
+
+      ids.forEach(id => {
+        if (!newWH[id]) return;
+        newWH[id].contracts.push({ customer, segmen, mulai, selesai });
+      });
+    }
+  }
+
+  // ── 4. Parse MAP sheet for dynamic site plan layout ─────────────
+  const mapLayout = parseMapSheet(wb);
+  if (mapLayout) {
+    console.log('[MAP] Dynamic layout loaded:', mapLayout.length, 'gudang');
+    currentMapLayout = mapLayout;
+  }
+
+  return newWH;
+}
+
+function typeFromId(id) {
+  if (id === 'OS') return 'Area Terbuka';
+  if (id.startsWith('MP')) return 'Mini Platform';
+  return 'Gudang Indoor';
+}
+
+// ── File handling ─────────────────────────────────────────────────
+
+function hideSplash() {
+  const sp = document.getElementById('splashPage');
+  if (!sp || sp.classList.contains('hiding')) return;
+  sp.classList.add('hiding');
+  setTimeout(() => { sp.style.display = 'none'; }, 420);
+}
+
+function handleFile(file) {
+  if (!file) return;
+  if (!/\.(xlsx|xls)$/i.test(file.name)) {
+    showToast('❌ Format tidak valid. Gunakan file .xlsx atau .xls', 'error');
+    return;
+  }
+
+  // Show loading state on splash if still visible
+  const spLoad = document.getElementById('spLoading');
+  const spBtn  = document.querySelector('.sp-btn');
+  if (spLoad) spLoad.classList.add('active');
+  if (spBtn)  spBtn.style.display = 'none';
+  showToast('⏳ Memuat data dari ' + file.name + '...', 'loading', 0);
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const parsed = parseExcelData(e.target.result);
+      const count  = Object.keys(parsed).length;
+      if (count === 0) throw new Error('Tidak ada data gudang ditemukan');
+
+      // Apply parsed data
+      WH = parsed;
+
+      // Re-render everything
+      renderSVG();
+      updateStats();
+      if (current && !WH[current]) closePanel();
+      else if (current) selectWh(current);
+
+      // Transition from splash to dashboard
+      hideSplash();
+      showToast(`✅ Data berhasil dimuat — ${count} gudang dari ${file.name}`, 'success', 4000);
+    } catch (err) {
+      // Reset splash loading state on error
+      if (spLoad) spLoad.classList.remove('active');
+      if (spBtn)  spBtn.style.display = '';
+      showToast('❌ Gagal membaca file: ' + err.message, 'error', 5000);
+      console.error(err);
+    }
+  };
+  reader.onerror = () => {
+    if (spLoad) spLoad.classList.remove('active');
+    if (spBtn)  spBtn.style.display = '';
+    showToast('❌ Gagal membaca file', 'error');
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── Splash drag-drop ──────────────────────────────────────────────
+(function() {
+  const zone = document.getElementById('spDropzone');
+  if (!zone) return;
+  zone.addEventListener('dragover',  (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', (e) => { if (!zone.contains(e.relatedTarget)) zone.classList.remove('dragover'); });
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault(); zone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+})();
+
+// ── ESC to close layout modal ─────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeLayoutModal();
+});
+
+// ── Drag & drop ───────────────────────────────────────────────────
+let dragCtr = 0;
+document.addEventListener('dragenter', (e) => {
+  e.preventDefault();
+  dragCtr++;
+  document.getElementById('dropOverlay').classList.add('active');
+});
+document.addEventListener('dragleave', () => {
+  dragCtr--;
+  if (dragCtr <= 0) { dragCtr = 0; document.getElementById('dropOverlay').classList.remove('active'); }
+});
+document.addEventListener('dragover', (e) => e.preventDefault());
+document.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dragCtr = 0;
+  document.getElementById('dropOverlay').classList.remove('active');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+
+// ── Toast ─────────────────────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg, type = 'info', duration = 3000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + type;
+  el.style.display = 'flex';
+  clearTimeout(toastTimer);
+  if (duration > 0) toastTimer = setTimeout(() => { el.style.display = 'none'; }, duration);
+}
+
+// ── Utilities ─────────────────────────────────────────────────────
+function fmtNum(n) { return (n || 0).toLocaleString('id-ID'); }
+function r(n)      { return n.toFixed(1); }
+function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+function sum(fn)   { return Object.values(WH).reduce((a, w) => a + (fn(w) || 0), 0); }
+
+// ═══════════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════════
+renderSVG();
+updateStats();
+</script>
+</body>
+</html>
